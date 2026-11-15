@@ -1,24 +1,50 @@
-# Proposed evaluation protocol
+# Preprocessing and evaluation protocol
 
-**Decision to review before making partitions.** Pooled validation estimates performance for another record drawn from the same mix of sites. Holding out a whole hospital tests transfer to one of four observed populations. Keep these as separate questions and identify each evaluation population in reported results.
+The research endpoint is recorded angiographic disease, with original `num` 1–4 mapped to positive and 0 mapped to negative. The loader retains `num`, `id` and hospital metadata alongside the derived outcome. Every transform uses an explicit predictor allowlist.
 
-## Phase 2 — define the prediction task and assess split feasibility
+## Feature availability by experimental tier
 
-1. Specify the prediction time and intended population. Review how each candidate field was collected relative to angiographic outcome ascertainment. For example, `ca` requires fluoroscopy and may be unavailable at an earlier prediction time. Exclude post-outcome or target-derived information. Keep a predictor allowlist that excludes `id`, `dataset`, `num` and the binary target.
-2. Review the two non-ID matches, compare predictor-only matches across sites and across outcomes, and investigate any available patient linkage. Predefine how to group plausible repeated observations so a group cannot straddle training and evaluation. If cross-site linkage conflicts with site holdout, document and resolve the conflict before splitting.
-3. Assess support for each site × outcome cell and each candidate measurement. Switzerland has only eight negative outcomes. Predefine which metrics and calibration summaries can be interpreted at that sample size. Record the uncertain meanings of zeros and sign conventions. Specify a primary policy and sensitivity analyses before inspecting fitted performance.
-4. Propose a grouped, target-stratified final holdout within sites for the same-mixture question. Check feasibility after accounting for duplicates and per-site class counts. Freeze its membership, grouping rules, seed and CSV digest only after review. Phase 1 creates no partition files.
+The **early** question assumes history, admission observations and routine blood-test results are available. The **extended** question assumes access to the additional diagnostic results listed below. Neither tier specifies a clinically validated screening protocol. The combined extract lacks timestamps for establishing the sequence of tests, referrals and outcome ascertainment. [UCI field dictionary](https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/heart-disease.names)
 
-## Phase 3 — develop models on the development pool
+| Tier | Fields | Representation and availability assumption |
+| --- | --- | --- |
+| Both | `age`, `sex`, `cp` | Numeric age, categorical recorded sex and chest-pain type. Symptom classification may depend on clinical assessment. |
+| Both | `trestbps`, `chol`, `fbs` | Numeric admission resting pressure and serum cholesterol, categorical fasting blood glucose above the source threshold. The latter two require laboratory results. |
+| Extended | `restecg` | Categorical result from a resting ECG. This procedure is excluded from the defined early setting. |
+| Extended | `thalch`, `exang`, `oldpeak`, `slope` | Exercise testing produces peak heart rate (numeric), exertional angina (categorical), exercise-relative ST depression (numeric) and peak ST slope (categorical). |
+| Extended | `ca` | Numeric count of vessels visualized by fluoroscopy. This diagnostic workup is close to the angiographic endpoint. The temporal order in these records is unverified. |
+| Extended | `thal` | Categorical normal, fixed-defect or reversible-defect result. These labels are consistent with thallium perfusion imaging. The precise test protocol and timing for each patient are unavailable. |
 
-- Compare Logistic Regression as the baseline with Random Forest and XGBoost. Use the same eligible records and folds across candidates. For conventional validation, use group-respecting stratified folds on development data. Fit imputation, scaling, encoding, feature selection and any resampling entirely within training folds.
-- For transfer evaluation, leave one hospital’s development records out at a time. All fitting, tuning and calibration for that outer fold use only the remaining hospitals. Use inner site-aware folds where class support permits. Fix search spaces, thresholds and comparison rules in advance. Review performance for each outer hospital separately.
-- Fit probability calibration only on out-of-fold predictions or a distinct calibration subset within the training portion. Keep calibrator selection inside the inner validation procedure. Compare calibrated and uncalibrated predictions on the same outer observations.
+The original research group describes fluoroscopy and thallium perfusion imaging in angiography-referred populations. This supports the extended-tier interpretation. It cannot establish individual test timing across these four databases. Referral selection and measurement availability can also affect early-tier results. [Detrano et al., 1986](https://pubmed.ncbi.nlm.nih.gov/3706156/)
 
-## Phase 4 — evaluate reliability and report uncertainty
+## Transformation contract
 
-Freeze model choices, preprocessing, probability calibration and thresholds using development evidence. Fit the selected pipeline on eligible development data and evaluate the untouched final pooled holdout once. Report the hospital-held-out results separately. Choosing a winner after inspecting outer-site scores makes those scores development evidence for that choice. An independent hospital cohort would be needed for a fresh external test.
+1. Load one byte snapshot. Keep source row order as the coordinate system for partitions. Require unique numeric IDs, a recognized site and a valid outcome. Parse numeric fields without learning statistics. Normalize blank and question-mark fields to missing. Preserve negative `oldpeak` and the recorded zero blood pressure.
+2. Construct duplicate groups from all 13 normalized predictors before selecting a tier or recoding cholesterol. Target and site are excluded from the comparison. Two missing values in the same field compare equal. The early tier therefore does not group people solely because their six early measurements coincide.
+3. Run the primary `as_recorded` policy and the prespecified `zero_as_missing` sensitivity on identical partitions. The latter masks only literal numeric zero in `chol`. The policies describe competing measurement assumptions. Report both, regardless of which performs better.
+4. For each training partition, instantiate a fresh scikit-learn pipeline. Its `ColumnTransformer` fits a median imputer and standard scaler on numeric training columns. A wholly missing numeric training column retains its position with a zero fallback and no learned variation. Inspect this case before interpreting coefficients or distances.
+5. For categorical columns, use a fixed missing label and fit a one-hot vocabulary on the training partition. A previously unseen category, including missingness first seen in evaluation, maps to an all-zero block. The fixed missing label preserves missing-test information when observed during training. This information can proxy the source hospital.
+6. Use only `transform` on held-out rows. Return named train/test matrices retaining source row indices. The JSON record stores the release digest, scikit-learn version, split-position digests, masks and missing counts, numeric imputer and scaler statistics, learned categories and output names. Restoring the release and lockfile reproduces the transformations. [scikit-learn mixed-type transformers](https://scikit-learn.org/stable/auto_examples/compose/plot_column_transformer_mixed_types.html)
 
-Report outcome counts and prevalence beside AUROC, average precision and any threshold-based sensitivity or specificity. Assess probability reliability with Brier score, log loss and calibration curves with bin counts. Use group-aware uncertainty intervals where feasible. A hospital with few negatives can yield unstable specificity even when pooled metrics appear precise. Four observed hospitals provide limited evidence about variation across future hospitals.
+## Two evaluation questions
 
-Missingness can reveal the site indirectly even when the site label is excluded. Median ages range from 49 in Hungary to 60 at VA Long Beach. A change in measurement practice, population mix or baseline prevalence can affect both discrimination and calibration. Compare site-specific metrics, a site-weighted summary with explicit weights, and prespecified sensitivity analyses for ambiguous zeros and sparse fields. The dataset audit does not identify the causes of site differences.
+**Conventional, pooled holdout.** The first fold of a shuffled five-fold stratified group split is held out, with seed 2026. The strata combine hospital and binary outcome, and exact predictor groups stay together. Stratification is approximate at group boundaries. On the verified release this yields 735 training records and 185 evaluation records, with 102 positives and 83 negatives in evaluation. The test site counts are 61 Cleveland, 59 Hungary, 25 Switzerland and 40 VA. The fixed rule avoids searching for an attractive holdout.
+
+**Transfer to one complete hospital.** Run four independent experiments. Each held-out hospital supplies every one of its records for evaluation. If any of its exact predictor profiles also occur elsewhere, remove every matching occurrence from that fold’s training pool. Preserve the full test site and record the training exclusion count. The current release requires zero such exclusions. The validation utility checks row coverage, index disjointness, hospital isolation and duplicate-group isolation before fitting.
+
+| Held-out hospital | Train | Evaluation | Positive | Negative |
+| --- | ---: | ---: | ---: | ---: |
+| Cleveland | 616 | 304 | 139 | 165 |
+| Hungary | 627 | 293 | 106 | 187 |
+| Switzerland | 797 | 123 | 115 | 8 |
+| VA Long Beach | 720 | 200 | 149 | 51 |
+
+Four hospitals provide four observed transfer settings. Switzerland’s eight negative records mean one changed negative classification moves measured specificity by 12.5 percentage points. A pooled estimate can conceal site differences in precision or probability reliability. Missingness and selection differ across sites, and one combined-release site label is disputed. No partition removes those limitations. [Source investigation](../reports/data-quality-investigation.md)
+
+## Phase 3 training plan, pending approval
+
+- Freeze the feature tiers, zero policies, metrics, tuning budgets and use of each holdout before training. Start with Logistic Regression as the baseline, then compare Random Forest and XGBoost on the same eligible rows and groups.
+- For pooled model selection, run group-preserving stratified CV entirely within the 735 training records. Start each inner fold from its eligible **untransformed** features and put a fresh `build_preprocessor(tier)` and estimator inside one pipeline. Reusing the outer-preprocessed training matrix inside CV would leak inner validation statistics.
+- For each hospital experiment, tune using only its remaining training hospitals, preferably with an entire inner hospital held out and the same training-side duplicate purge. Select thresholds and any calibration method using inner or cross-fitted training predictions. Fit the selected procedure on the outer training pool before scoring once on its held-out site.
+- The two designs reuse the same people for different research questions. Freeze choices for both designs before opening either set of scores. Complete the pooled final evaluation before using its records in hospital experiments. Run all four outer folds under one frozen protocol. Using one site’s results to retune another would invalidate the cross-hospital comparison.
+- Report per-site class counts, AUROC and average precision with prevalence context. Evaluate probability reliability using Brier score, log loss and calibration curves with bin counts. Report uncertainty where class support permits. Any scores used to revise the protocol become development evidence for that revision.

@@ -1,0 +1,2632 @@
+{
+  "csv_sha256": "574f2fa2b43012fa25fca4fcdb36bd7c6bccdd0af4242f6c0e4c8633c5a072ae",
+  "sklearn": "1.9.1",
+  "pooled_seed": 2026,
+  "experiments": {
+    "pooled": {
+      "training_exclusions": 0,
+      "runs": [
+        {
+          "tier": "early",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            223.0
+          ],
+          "scaler_mean": [
+            53.34013605442177,
+            132.09931972789116,
+            200.82857142857142
+          ],
+          "scaler_scale": [
+            9.410586453375538,
+            18.811118063595686,
+            110.04720323013898
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 735,
+            "positions_sha256": "039d450b7f2a4bd4818e2cf4782c00d6cbf1382b139971e40d01c722fe7d9e44",
+            "binary_positive": 407,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 45,
+              "chol": 22,
+              "fbs": 72
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 185,
+            "positions_sha256": "cf80c09963c65a177017bf2d6fec7eeb0ce30192b8eb6a285ec806d32086b2be",
+            "binary_positive": 102,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 14,
+              "chol": 8,
+              "fbs": 18
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "early",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            239.5
+          ],
+          "scaler_mean": [
+            53.34013605442177,
+            132.09931972789116,
+            245.9639455782313
+          ],
+          "scaler_scale": [
+            9.410586453375538,
+            18.811118063595686,
+            53.51912106085347
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 735,
+            "positions_sha256": "039d450b7f2a4bd4818e2cf4782c00d6cbf1382b139971e40d01c722fe7d9e44",
+            "binary_positive": 407,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 45,
+              "chol": 159,
+              "fbs": 72
+            },
+            "chol_zeros_masked": 137
+          },
+          "test": {
+            "rows": 185,
+            "positions_sha256": "cf80c09963c65a177017bf2d6fec7eeb0ce30192b8eb6a285ec806d32086b2be",
+            "binary_positive": 102,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 14,
+              "chol": 43,
+              "fbs": 18
+            },
+            "chol_zeros_masked": 35
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            223.0,
+            140.0,
+            0.5,
+            0.0
+          ],
+          "scaler_mean": [
+            53.34013605442177,
+            132.09931972789116,
+            200.82857142857142,
+            138.1278911564626,
+            0.8530612244897959,
+            0.22993197278911565
+          ],
+          "scaler_scale": [
+            9.410586453375538,
+            18.811118063595686,
+            110.04720323013898,
+            25.238238406547,
+            1.0557717055361664,
+            0.6239456375659699
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 735,
+            "positions_sha256": "039d450b7f2a4bd4818e2cf4782c00d6cbf1382b139971e40d01c722fe7d9e44",
+            "binary_positive": 407,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 45,
+              "chol": 22,
+              "fbs": 72,
+              "restecg": 1,
+              "thalch": 43,
+              "exang": 43,
+              "oldpeak": 48,
+              "slope": 239,
+              "ca": 488,
+              "thal": 387
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 185,
+            "positions_sha256": "cf80c09963c65a177017bf2d6fec7eeb0ce30192b8eb6a285ec806d32086b2be",
+            "binary_positive": 102,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 14,
+              "chol": 8,
+              "fbs": 18,
+              "restecg": 1,
+              "thalch": 12,
+              "exang": 12,
+              "oldpeak": 14,
+              "slope": 70,
+              "ca": 123,
+              "thal": 99
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            239.5,
+            140.0,
+            0.5,
+            0.0
+          ],
+          "scaler_mean": [
+            53.34013605442177,
+            132.09931972789116,
+            245.9639455782313,
+            138.1278911564626,
+            0.8530612244897959,
+            0.22993197278911565
+          ],
+          "scaler_scale": [
+            9.410586453375538,
+            18.811118063595686,
+            53.51912106085347,
+            25.238238406547,
+            1.0557717055361664,
+            0.6239456375659699
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 735,
+            "positions_sha256": "039d450b7f2a4bd4818e2cf4782c00d6cbf1382b139971e40d01c722fe7d9e44",
+            "binary_positive": 407,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 45,
+              "chol": 159,
+              "fbs": 72,
+              "restecg": 1,
+              "thalch": 43,
+              "exang": 43,
+              "oldpeak": 48,
+              "slope": 239,
+              "ca": 488,
+              "thal": 387
+            },
+            "chol_zeros_masked": 137
+          },
+          "test": {
+            "rows": 185,
+            "positions_sha256": "cf80c09963c65a177017bf2d6fec7eeb0ce30192b8eb6a285ec806d32086b2be",
+            "binary_positive": 102,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 14,
+              "chol": 43,
+              "fbs": 18,
+              "restecg": 1,
+              "thalch": 12,
+              "exang": 12,
+              "oldpeak": 14,
+              "slope": 70,
+              "ca": 123,
+              "thal": 99
+            },
+            "chol_zeros_masked": 35
+          }
+        }
+      ]
+    },
+    "Cleveland": {
+      "training_exclusions": 0,
+      "runs": [
+        {
+          "tier": "early",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            214.0
+          ],
+          "scaler_mean": [
+            53.09577922077922,
+            132.14935064935065,
+            176.5681818181818
+          ],
+          "scaler_scale": [
+            9.529461240577671,
+            18.867371157199898,
+            121.56739577236996
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 616,
+            "positions_sha256": "27141d9d67252ad2ae77d34af2ff87976128c41edc1fd80149df23285286c4a0",
+            "binary_positive": 370,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 59,
+              "chol": 30,
+              "fbs": 90
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 304,
+            "positions_sha256": "3a2fff99a5f998499f36ff105a4beca3581bb5b54b2590bedc8c933316c1c798",
+            "binary_positive": 139,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 0,
+              "chol": 0,
+              "fbs": 0
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "early",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            237.5
+          ],
+          "scaler_mean": [
+            53.09577922077922,
+            132.14935064935065,
+            244.0275974025974
+          ],
+          "scaler_scale": [
+            9.529461240577671,
+            18.867371157199898,
+            51.69154944319155
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 616,
+            "positions_sha256": "27141d9d67252ad2ae77d34af2ff87976128c41edc1fd80149df23285286c4a0",
+            "binary_positive": 370,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 59,
+              "chol": 202,
+              "fbs": 90
+            },
+            "chol_zeros_masked": 172
+          },
+          "test": {
+            "rows": 304,
+            "positions_sha256": "3a2fff99a5f998499f36ff105a4beca3581bb5b54b2590bedc8c933316c1c798",
+            "binary_positive": 139,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 0,
+              "chol": 0,
+              "fbs": 0
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            214.0,
+            130.0,
+            0.0,
+            0.5
+          ],
+          "scaler_mean": [
+            53.09577922077922,
+            132.14935064935065,
+            176.5681818181818,
+            130.86201298701297,
+            0.7126623376623377,
+            0.5048701298701299
+          ],
+          "scaler_scale": [
+            9.529461240577671,
+            18.867371157199898,
+            121.56739577236996,
+            23.9049548979946,
+            1.0158174637947408,
+            0.11736687409038962
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 616,
+            "positions_sha256": "27141d9d67252ad2ae77d34af2ff87976128c41edc1fd80149df23285286c4a0",
+            "binary_positive": 370,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 59,
+              "chol": 30,
+              "fbs": 90,
+              "restecg": 2,
+              "thalch": 55,
+              "exang": 55,
+              "oldpeak": 62,
+              "slope": 308,
+              "ca": 606,
+              "thal": 483
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 304,
+            "positions_sha256": "3a2fff99a5f998499f36ff105a4beca3581bb5b54b2590bedc8c933316c1c798",
+            "binary_positive": 139,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 0,
+              "chol": 0,
+              "fbs": 0,
+              "restecg": 0,
+              "thalch": 0,
+              "exang": 0,
+              "oldpeak": 0,
+              "slope": 1,
+              "ca": 5,
+              "thal": 3
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            237.5,
+            130.0,
+            0.0,
+            0.5
+          ],
+          "scaler_mean": [
+            53.09577922077922,
+            132.14935064935065,
+            244.0275974025974,
+            130.86201298701297,
+            0.7126623376623377,
+            0.5048701298701299
+          ],
+          "scaler_scale": [
+            9.529461240577671,
+            18.867371157199898,
+            51.69154944319155,
+            23.9049548979946,
+            1.0158174637947408,
+            0.11736687409038962
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 616,
+            "positions_sha256": "27141d9d67252ad2ae77d34af2ff87976128c41edc1fd80149df23285286c4a0",
+            "binary_positive": 370,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 59,
+              "chol": 202,
+              "fbs": 90,
+              "restecg": 2,
+              "thalch": 55,
+              "exang": 55,
+              "oldpeak": 62,
+              "slope": 308,
+              "ca": 606,
+              "thal": 483
+            },
+            "chol_zeros_masked": 172
+          },
+          "test": {
+            "rows": 304,
+            "positions_sha256": "3a2fff99a5f998499f36ff105a4beca3581bb5b54b2590bedc8c933316c1c798",
+            "binary_positive": 139,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 0,
+              "chol": 0,
+              "fbs": 0,
+              "restecg": 0,
+              "thalch": 0,
+              "exang": 0,
+              "oldpeak": 0,
+              "slope": 1,
+              "ca": 5,
+              "thal": 3
+            },
+            "chol_zeros_masked": 0
+          }
+        }
+      ]
+    },
+    "Hungary": {
+      "training_exclusions": 0,
+      "runs": [
+        {
+          "tier": "early",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            57.0,
+            130.0,
+            216.0
+          ],
+          "scaler_mean": [
+            56.135566188197764,
+            131.72089314194577,
+            176.85805422647528
+          ],
+          "scaler_scale": [
+            8.981771090395272,
+            18.816759144991966,
+            117.4205379063253
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 627,
+            "positions_sha256": "b41b5c4f1d40048d02cad25dd8a8f6bdeffb7e54edfd29257934c158232b6c1f",
+            "binary_positive": 403,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 58,
+              "chol": 7,
+              "fbs": 82
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 293,
+            "positions_sha256": "6a6bbc0a5ba6bbc6a8ce85c7590fc56eb1d2e0706df1876ce1ff793ebd992d63",
+            "binary_positive": 106,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 1,
+              "chol": 23,
+              "fbs": 8
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "early",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            57.0,
+            130.0,
+            237.0
+          ],
+          "scaler_mean": [
+            56.135566188197764,
+            131.72089314194577,
+            242.10685805422648
+          ],
+          "scaler_scale": [
+            8.981771090395272,
+            18.816759144991966,
+            44.33092606294923
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 627,
+            "positions_sha256": "b41b5c4f1d40048d02cad25dd8a8f6bdeffb7e54edfd29257934c158232b6c1f",
+            "binary_positive": 403,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 58,
+              "chol": 179,
+              "fbs": 82
+            },
+            "chol_zeros_masked": 172
+          },
+          "test": {
+            "rows": 293,
+            "positions_sha256": "6a6bbc0a5ba6bbc6a8ce85c7590fc56eb1d2e0706df1876ce1ff793ebd992d63",
+            "binary_positive": 106,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 1,
+              "chol": 23,
+              "fbs": 8
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            57.0,
+            130.0,
+            216.0,
+            140.0,
+            0.9,
+            0.0
+          ],
+          "scaler_mean": [
+            56.135566188197764,
+            131.72089314194577,
+            176.85805422647528,
+            137.09250398724083,
+            1.0167464114832536,
+            0.3333333333333333
+          ],
+          "scaler_scale": [
+            8.981771090395272,
+            18.816759144991966,
+            117.4205379063253,
+            25.880927031332945,
+            1.0880342096069413,
+            0.7378287614571463
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 627,
+            "positions_sha256": "b41b5c4f1d40048d02cad25dd8a8f6bdeffb7e54edfd29257934c158232b6c1f",
+            "binary_positive": 403,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 58,
+              "chol": 7,
+              "fbs": 82,
+              "restecg": 1,
+              "thalch": 54,
+              "exang": 54,
+              "oldpeak": 62,
+              "slope": 120,
+              "ca": 321,
+              "thal": 221
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 293,
+            "positions_sha256": "6a6bbc0a5ba6bbc6a8ce85c7590fc56eb1d2e0706df1876ce1ff793ebd992d63",
+            "binary_positive": 106,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 1,
+              "chol": 23,
+              "fbs": 8,
+              "restecg": 1,
+              "thalch": 1,
+              "exang": 1,
+              "oldpeak": 0,
+              "slope": 189,
+              "ca": 290,
+              "thal": 265
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            57.0,
+            130.0,
+            237.0,
+            140.0,
+            0.9,
+            0.0
+          ],
+          "scaler_mean": [
+            56.135566188197764,
+            131.72089314194577,
+            242.10685805422648,
+            137.09250398724083,
+            1.0167464114832536,
+            0.3333333333333333
+          ],
+          "scaler_scale": [
+            8.981771090395272,
+            18.816759144991966,
+            44.33092606294923,
+            25.880927031332945,
+            1.0880342096069413,
+            0.7378287614571463
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 627,
+            "positions_sha256": "b41b5c4f1d40048d02cad25dd8a8f6bdeffb7e54edfd29257934c158232b6c1f",
+            "binary_positive": 403,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 58,
+              "chol": 179,
+              "fbs": 82,
+              "restecg": 1,
+              "thalch": 54,
+              "exang": 54,
+              "oldpeak": 62,
+              "slope": 120,
+              "ca": 321,
+              "thal": 221
+            },
+            "chol_zeros_masked": 172
+          },
+          "test": {
+            "rows": 293,
+            "positions_sha256": "6a6bbc0a5ba6bbc6a8ce85c7590fc56eb1d2e0706df1876ce1ff793ebd992d63",
+            "binary_positive": 106,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 1,
+              "chol": 23,
+              "fbs": 8,
+              "restecg": 1,
+              "thalch": 1,
+              "exang": 1,
+              "oldpeak": 0,
+              "slope": 189,
+              "ca": 290,
+              "thal": 265
+            },
+            "chol_zeros_masked": 0
+          }
+        }
+      ]
+    },
+    "Switzerland": {
+      "training_exclusions": 0,
+      "runs": [
+        {
+          "tier": "early",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            234.0
+          ],
+          "scaler_mean": [
+            53.23212045169385,
+            132.27227101631118,
+            231.17440401505647
+          ],
+          "scaler_scale": [
+            9.452652779122682,
+            17.75859016657762,
+            81.16889742667983
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 797,
+            "positions_sha256": "6408c4b99e955b5d894b5f1d4bbd2f4215585fdadeba986a59626ab2bdc2946b",
+            "binary_positive": 394,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 57,
+              "chol": 30,
+              "fbs": 15
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 123,
+            "positions_sha256": "cddba4b6d5b8cea7e2c572ac65412a529cf10b472038b81a0e8e0b4e50a307a6",
+            "binary_positive": 115,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 2,
+              "chol": 0,
+              "fbs": 75
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "early",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            239.5
+          ],
+          "scaler_mean": [
+            53.23212045169385,
+            132.27227101631118,
+            246.1060225846926
+          ],
+          "scaler_scale": [
+            9.452652779122682,
+            17.75859016657762,
+            55.55526475295689
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 797,
+            "positions_sha256": "6408c4b99e955b5d894b5f1d4bbd2f4215585fdadeba986a59626ab2bdc2946b",
+            "binary_positive": 394,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 57,
+              "chol": 79,
+              "fbs": 15
+            },
+            "chol_zeros_masked": 49
+          },
+          "test": {
+            "rows": 123,
+            "positions_sha256": "cddba4b6d5b8cea7e2c572ac65412a529cf10b472038b81a0e8e0b4e50a307a6",
+            "binary_positive": 115,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 2,
+              "chol": 123,
+              "fbs": 75
+            },
+            "chol_zeros_masked": 123
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            234.0,
+            141.0,
+            0.5,
+            0.0
+          ],
+          "scaler_mean": [
+            53.23212045169385,
+            132.27227101631118,
+            231.17440401505647,
+            140.22710163111668,
+            0.8851944792973652,
+            0.2521957340025094
+          ],
+          "scaler_scale": [
+            9.452652779122682,
+            17.75859016657762,
+            81.16889742667983,
+            24.098029996086943,
+            1.058635573917436,
+            0.6591777105109811
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 797,
+            "positions_sha256": "6408c4b99e955b5d894b5f1d4bbd2f4215585fdadeba986a59626ab2bdc2946b",
+            "binary_positive": 394,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 57,
+              "chol": 30,
+              "fbs": 15,
+              "restecg": 1,
+              "thalch": 54,
+              "exang": 54,
+              "oldpeak": 56,
+              "slope": 292,
+              "ca": 493,
+              "thal": 434
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 123,
+            "positions_sha256": "cddba4b6d5b8cea7e2c572ac65412a529cf10b472038b81a0e8e0b4e50a307a6",
+            "binary_positive": 115,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 2,
+              "chol": 0,
+              "fbs": 75,
+              "restecg": 1,
+              "thalch": 1,
+              "exang": 1,
+              "oldpeak": 6,
+              "slope": 17,
+              "ca": 118,
+              "thal": 52
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            54.0,
+            130.0,
+            239.5,
+            141.0,
+            0.5,
+            0.0
+          ],
+          "scaler_mean": [
+            53.23212045169385,
+            132.27227101631118,
+            246.1060225846926,
+            140.22710163111668,
+            0.8851944792973652,
+            0.2521957340025094
+          ],
+          "scaler_scale": [
+            9.452652779122682,
+            17.75859016657762,
+            55.55526475295689,
+            24.098029996086943,
+            1.058635573917436,
+            0.6591777105109811
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 797,
+            "positions_sha256": "6408c4b99e955b5d894b5f1d4bbd2f4215585fdadeba986a59626ab2bdc2946b",
+            "binary_positive": 394,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 57,
+              "chol": 79,
+              "fbs": 15,
+              "restecg": 1,
+              "thalch": 54,
+              "exang": 54,
+              "oldpeak": 56,
+              "slope": 292,
+              "ca": 493,
+              "thal": 434
+            },
+            "chol_zeros_masked": 49
+          },
+          "test": {
+            "rows": 123,
+            "positions_sha256": "cddba4b6d5b8cea7e2c572ac65412a529cf10b472038b81a0e8e0b4e50a307a6",
+            "binary_positive": 115,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 2,
+              "chol": 123,
+              "fbs": 75,
+              "restecg": 1,
+              "thalch": 1,
+              "exang": 1,
+              "oldpeak": 6,
+              "slope": 17,
+              "ca": 118,
+              "thal": 52
+            },
+            "chol_zeros_masked": 123
+          }
+        }
+      ]
+    },
+    "VA Long Beach": {
+      "training_exclusions": 0,
+      "runs": [
+        {
+          "tier": "early",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            53.0,
+            130.0,
+            227.0
+          ],
+          "scaler_mean": [
+            51.888888888888886,
+            131.79722222222222,
+            205.48472222222222
+          ],
+          "scaler_scale": [
+            9.187333604775223,
+            18.47815506229377,
+            107.50953337536866
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 720,
+            "positions_sha256": "24cc964b0654812ceeffe50290b3f7a091a1996107e887f39c9e594e84a5a702",
+            "binary_positive": 360,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 3,
+              "chol": 23,
+              "fbs": 83
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 200,
+            "positions_sha256": "9af2d35d8edbc3b00a033539f4c53b8ba4415530353db9ef7efc89814c62277f",
+            "binary_positive": 149,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 56,
+              "chol": 7,
+              "fbs": 7
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "early",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol"
+          ],
+          "median_imputer_statistics": [
+            53.0,
+            130.0,
+            242.5
+          ],
+          "scaler_mean": [
+            51.888888888888886,
+            131.79722222222222,
+            247.40694444444443
+          ],
+          "scaler_scale": [
+            9.187333604775223,
+            18.47815506229377,
+            53.39110497698638
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ]
+          },
+          "train": {
+            "rows": 720,
+            "positions_sha256": "24cc964b0654812ceeffe50290b3f7a091a1996107e887f39c9e594e84a5a702",
+            "binary_positive": 360,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 3,
+              "chol": 146,
+              "fbs": 83
+            },
+            "chol_zeros_masked": 123
+          },
+          "test": {
+            "rows": 200,
+            "positions_sha256": "9af2d35d8edbc3b00a033539f4c53b8ba4415530353db9ef7efc89814c62277f",
+            "binary_positive": 149,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 56,
+              "chol": 56,
+              "fbs": 7
+            },
+            "chol_zeros_masked": 49
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "as_recorded",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            53.0,
+            130.0,
+            227.0,
+            142.0,
+            0.2,
+            0.0
+          ],
+          "scaler_mean": [
+            51.888888888888886,
+            131.79722222222222,
+            205.48472222222222,
+            140.56944444444446,
+            0.7847222222222222,
+            0.2902777777777778
+          ],
+          "scaler_scale": [
+            9.187333604775223,
+            18.47815506229377,
+            107.50953337536866,
+            25.593796117249937,
+            1.063113838660102,
+            0.697547235004002
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 720,
+            "positions_sha256": "24cc964b0654812ceeffe50290b3f7a091a1996107e887f39c9e594e84a5a702",
+            "binary_positive": 360,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 3,
+              "chol": 23,
+              "fbs": 83,
+              "restecg": 2,
+              "thalch": 2,
+              "exang": 2,
+              "oldpeak": 6,
+              "slope": 207,
+              "ca": 413,
+              "thal": 320
+            },
+            "chol_zeros_masked": 0
+          },
+          "test": {
+            "rows": 200,
+            "positions_sha256": "9af2d35d8edbc3b00a033539f4c53b8ba4415530353db9ef7efc89814c62277f",
+            "binary_positive": 149,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 56,
+              "chol": 7,
+              "fbs": 7,
+              "restecg": 0,
+              "thalch": 53,
+              "exang": 53,
+              "oldpeak": 56,
+              "slope": 102,
+              "ca": 198,
+              "thal": 166
+            },
+            "chol_zeros_masked": 0
+          }
+        },
+        {
+          "tier": "extended",
+          "cholesterol": "zero_as_missing",
+          "source_columns": [
+            "age",
+            "sex",
+            "cp",
+            "trestbps",
+            "chol",
+            "fbs",
+            "restecg",
+            "thalch",
+            "exang",
+            "oldpeak",
+            "slope",
+            "ca",
+            "thal"
+          ],
+          "output_columns": [
+            "numeric__age",
+            "numeric__trestbps",
+            "numeric__chol",
+            "numeric__thalch",
+            "numeric__oldpeak",
+            "numeric__ca",
+            "category__sex_Female",
+            "category__sex_Male",
+            "category__cp_asymptomatic",
+            "category__cp_atypical angina",
+            "category__cp_non-anginal",
+            "category__cp_typical angina",
+            "category__fbs_FALSE",
+            "category__fbs_TRUE",
+            "category__fbs___missing__",
+            "category__restecg___missing__",
+            "category__restecg_lv hypertrophy",
+            "category__restecg_normal",
+            "category__restecg_st-t abnormality",
+            "category__exang_FALSE",
+            "category__exang_TRUE",
+            "category__exang___missing__",
+            "category__slope___missing__",
+            "category__slope_downsloping",
+            "category__slope_flat",
+            "category__slope_upsloping",
+            "category__thal___missing__",
+            "category__thal_fixed defect",
+            "category__thal_normal",
+            "category__thal_reversable defect"
+          ],
+          "numeric_columns": [
+            "age",
+            "trestbps",
+            "chol",
+            "thalch",
+            "oldpeak",
+            "ca"
+          ],
+          "median_imputer_statistics": [
+            53.0,
+            130.0,
+            242.5,
+            142.0,
+            0.2,
+            0.0
+          ],
+          "scaler_mean": [
+            51.888888888888886,
+            131.79722222222222,
+            247.40694444444443,
+            140.56944444444446,
+            0.7847222222222222,
+            0.2902777777777778
+          ],
+          "scaler_scale": [
+            9.187333604775223,
+            18.47815506229377,
+            53.39110497698638,
+            25.593796117249937,
+            1.063113838660102,
+            0.697547235004002
+          ],
+          "categorical_fill": "__missing__",
+          "unseen_category": "all-zero block",
+          "training_categories": {
+            "sex": [
+              "Female",
+              "Male"
+            ],
+            "cp": [
+              "asymptomatic",
+              "atypical angina",
+              "non-anginal",
+              "typical angina"
+            ],
+            "fbs": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "restecg": [
+              "__missing__",
+              "lv hypertrophy",
+              "normal",
+              "st-t abnormality"
+            ],
+            "exang": [
+              "FALSE",
+              "TRUE",
+              "__missing__"
+            ],
+            "slope": [
+              "__missing__",
+              "downsloping",
+              "flat",
+              "upsloping"
+            ],
+            "thal": [
+              "__missing__",
+              "fixed defect",
+              "normal",
+              "reversable defect"
+            ]
+          },
+          "train": {
+            "rows": 720,
+            "positions_sha256": "24cc964b0654812ceeffe50290b3f7a091a1996107e887f39c9e594e84a5a702",
+            "binary_positive": 360,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 3,
+              "chol": 146,
+              "fbs": 83,
+              "restecg": 2,
+              "thalch": 2,
+              "exang": 2,
+              "oldpeak": 6,
+              "slope": 207,
+              "ca": 413,
+              "thal": 320
+            },
+            "chol_zeros_masked": 123
+          },
+          "test": {
+            "rows": 200,
+            "positions_sha256": "9af2d35d8edbc3b00a033539f4c53b8ba4415530353db9ef7efc89814c62277f",
+            "binary_positive": 149,
+            "missing_after_policy": {
+              "age": 0,
+              "sex": 0,
+              "cp": 0,
+              "trestbps": 56,
+              "chol": 56,
+              "fbs": 7,
+              "restecg": 0,
+              "thalch": 53,
+              "exang": 53,
+              "oldpeak": 56,
+              "slope": 102,
+              "ca": 198,
+              "thal": 166
+            },
+            "chol_zeros_masked": 49
+          }
+        }
+      ]
+    }
+  }
+}

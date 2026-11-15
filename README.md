@@ -4,7 +4,7 @@
 
 **Research question.** How well do heart disease classification models generalize across different hospital populations, and how reliable are their predicted probabilities?
 
-**Phase 1 delivers a reproducible dataset audit.** The combined CSV contains 920 records, 16 columns and four hospital sources. The audit preserves the original outcome, derives a binary label in memory, checks data quality and produces aggregate reports on CPU. Model fitting, partitioning and probability calibration are planned work. [Markdown audit](reports/dataset-audit.md) · [JSON summary](reports/dataset-audit.json)
+**Phase 2 delivers split generation and training-only preprocessing.** The CPU workflow runs two feature tiers and two cholesterol policies across a pooled holdout and four held-out hospitals. The 920-record Phase 1 audit remains the baseline. Predictive model fitting and calibration are planned work. [Source investigation](reports/data-quality-investigation.md) · [Evaluation protocol](docs/evaluation.md) · [Phase 1 audit](reports/dataset-audit.md)
 
 ## Why compare hospitals?
 
@@ -35,12 +35,22 @@ Expected SHA-256 is `574f2fa2b43012fa25fca4fcdb36bd7c6bccdd0af4242f6c0e4c8633c5a
 | 1 | Reports written with validation errors, such as unexpected sites or invalid outcomes. |
 | 2 | Input, CSV structure, arguments or report I/O prevented a successful run. |
 
+### Reproduce Phase 2
+
+Run the package installation above once after switching branches to install scikit-learn. The protocol command executes 20 preprocessing fits. Its aggregate JSON records split membership digests, transformations and train-fitted parameters. The input remains local.
+
+```powershell
+.\.venv\Scripts\python.exe -m cardioscope.protocol --input data/raw/heart_disease_uci.csv --output reports/preprocessing-protocol.json
+```
+
+The six-field early tier assumes routine blood results are available. The 13-field extended tier adds resting ECG, exercise testing and diagnostic measurements. The default preserves cholesterol zeros. The sensitivity run masks only cholesterol zeros and fits the imputer on training rows. The two fixed designs evaluate the observed site mixture (735 train, 185 held out) and transfer to each whole hospital. [Feature schema and leakage controls](docs/evaluation.md) · [Fit record](reports/preprocessing-protocol.json) · [Source comparison commands](reports/data-quality-investigation.md)
+
 ### Run the quality checks
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m ruff check .
-.\.venv\Scripts\python.exe -m ruff format --check src tests
+.\.venv\Scripts\python.exe -m ruff format --check src tests scripts
 .\.venv\Scripts\python.exe -m mypy
 .\.venv\Scripts\python.exe -m pip check
 ```
@@ -53,6 +63,8 @@ Tests generate invented records in temporary directories. The source CSV is need
 | --- | --- |
 | `src/cardioscope/data/` | CSV structure and byte checksum, field definitions, validation, derived labels and aggregate statistics |
 | `src/cardioscope/cli.py`, `report.py` | Explicit input path, exit status and deterministic Markdown/JSON rendering |
+| `src/cardioscope/preprocessing.py`, `splits.py`, `protocol.py` | Feature tiers, training pipelines, split safeguards and aggregate transformation records |
+| `scripts/compare_sources.py` | Reconcile the combined CSV against UCI’s four processed files and screen for near matches |
 | `data/raw/` | Local, Git-ignored source files |
 | `tests/`, `reports/`, `docs/` | Synthetic regression tests, real-data audit evidence and research design |
 
@@ -62,6 +74,6 @@ Tests generate invented records in temporary directories. The source CSV is need
 
 These historical records describe selected hospital populations. Their positive fractions describe this sample. Four sites and small within-site class counts limit estimates of transfer and calibration. The combined release has unresolved zero encodings and matching records under different IDs. This audit provides no estimate of predictive performance.
 
-Phase 2 will review predictor timing, duplicate grouping, missing-value rules and split feasibility. Later phases will compare Logistic Regression, Random Forest and XGBoost under pooled and hospital-held-out evaluation, including discrimination and probability calibration. The proposed protocol keeps final evaluation data separate from tuning. [Evaluation plan](docs/evaluation.md)
+Phase 3 is pending approval. Its proposed comparisons are Logistic Regression, Random Forest and XGBoost, with training-only tuning and separate assessment of discrimination and probability calibration. [Training plan](docs/evaluation.md)
 
 **Original data citation.** Janosi, A., Steinbrunn, W., Pfisterer, M., & Detrano, R. (1989). *Heart Disease* [Dataset]. UCI Machine Learning Repository. [DOI 10.24432/C52P4X](https://doi.org/10.24432/C52P4X)

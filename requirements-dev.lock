@@ -1,8 +1,11 @@
+cloudpickle==3.1.2
 colorama==0.4.6
 iniconfig==2.3.1
+joblib==1.6.0
 librt==0.16.0
 mypy==1.20.2
 mypy_extensions==1.2.0
+narwhals==2.28.0
 numpy==2.5.4
 packaging==26.3
 pandas==2.3.3
@@ -14,6 +17,9 @@ pytest==8.4.2
 python-dateutil==4.0.0
 pytz==2026.6
 ruff==0.14.14
+scikit-learn==1.9.1
+scipy==1.18.1
+threadpoolctl==3.8.0
 types-pytz==2026.6.0.20261031
 typing_extensions==4.16.0
 tzdata==2026.6

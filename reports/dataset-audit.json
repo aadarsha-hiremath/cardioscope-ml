@@ -1,0 +1,639 @@
+{
+  "sha256": "574f2fa2b43012fa25fca4fcdb36bd7c6bccdd0af4242f6c0e4c8633c5a072ae",
+  "matches_kaggle_v6": true,
+  "rows": 920,
+  "columns": 16,
+  "fields": {
+    "id": {
+      "storage_dtype": "string",
+      "expected_type": "integer",
+      "role": "identifier",
+      "missing": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "categories": {},
+      "invalid": {},
+      "review": {},
+      "numeric": {
+        "count": 920,
+        "minimum": 1.0,
+        "median": 460.5,
+        "mean": 460.5,
+        "maximum": 920.0
+      }
+    },
+    "age": {
+      "storage_dtype": "string",
+      "expected_type": "integer",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "categories": {},
+      "invalid": {},
+      "review": {},
+      "numeric": {
+        "count": 920,
+        "minimum": 28.0,
+        "median": 54.0,
+        "mean": 53.5109,
+        "maximum": 77.0
+      }
+    },
+    "sex": {
+      "storage_dtype": "string",
+      "expected_type": "category",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "categories": {
+        "Female": 194,
+        "Male": 726
+      },
+      "invalid": {},
+      "review": {},
+      "numeric": null
+    },
+    "dataset": {
+      "storage_dtype": "string",
+      "expected_type": "category",
+      "role": "hospital metadata",
+      "missing": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "categories": {
+        "Cleveland": 304,
+        "Hungary": 293,
+        "Switzerland": 123,
+        "VA Long Beach": 200
+      },
+      "invalid": {},
+      "review": {},
+      "numeric": null
+    },
+    "cp": {
+      "storage_dtype": "string",
+      "expected_type": "category",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "categories": {
+        "asymptomatic": 496,
+        "atypical angina": 174,
+        "non-anginal": 204,
+        "typical angina": 46
+      },
+      "invalid": {},
+      "review": {},
+      "numeric": null
+    },
+    "trestbps": {
+      "storage_dtype": "string",
+      "expected_type": "integer",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 59,
+        "percent": 6.413
+      },
+      "categories": {},
+      "invalid": {},
+      "review": {
+        "zero": 1
+      },
+      "numeric": {
+        "count": 861,
+        "minimum": 0.0,
+        "median": 130.0,
+        "mean": 132.1324,
+        "maximum": 200.0
+      }
+    },
+    "chol": {
+      "storage_dtype": "string",
+      "expected_type": "integer",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 30,
+        "percent": 3.261
+      },
+      "categories": {},
+      "invalid": {},
+      "review": {
+        "zero": 172
+      },
+      "numeric": {
+        "count": 890,
+        "minimum": 0.0,
+        "median": 223.0,
+        "mean": 199.1303,
+        "maximum": 603.0
+      }
+    },
+    "fbs": {
+      "storage_dtype": "string",
+      "expected_type": "boolean",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 90,
+        "percent": 9.783
+      },
+      "categories": {
+        "FALSE": 692,
+        "TRUE": 138
+      },
+      "invalid": {},
+      "review": {},
+      "numeric": null
+    },
+    "restecg": {
+      "storage_dtype": "string",
+      "expected_type": "category",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 2,
+        "percent": 0.217
+      },
+      "categories": {
+        "lv hypertrophy": 188,
+        "normal": 551,
+        "st-t abnormality": 179
+      },
+      "invalid": {},
+      "review": {},
+      "numeric": null
+    },
+    "thalch": {
+      "storage_dtype": "string",
+      "expected_type": "integer",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 55,
+        "percent": 5.978
+      },
+      "categories": {},
+      "invalid": {},
+      "review": {},
+      "numeric": {
+        "count": 865,
+        "minimum": 60.0,
+        "median": 140.0,
+        "mean": 137.5457,
+        "maximum": 202.0
+      }
+    },
+    "exang": {
+      "storage_dtype": "string",
+      "expected_type": "boolean",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 55,
+        "percent": 5.978
+      },
+      "categories": {
+        "FALSE": 528,
+        "TRUE": 337
+      },
+      "invalid": {},
+      "review": {},
+      "numeric": null
+    },
+    "oldpeak": {
+      "storage_dtype": "string",
+      "expected_type": "real",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 62,
+        "percent": 6.739
+      },
+      "categories": {},
+      "invalid": {},
+      "review": {
+        "negative ST depression": 12
+      },
+      "numeric": {
+        "count": 858,
+        "minimum": -2.6,
+        "median": 0.5,
+        "mean": 0.8788,
+        "maximum": 6.2
+      }
+    },
+    "slope": {
+      "storage_dtype": "string",
+      "expected_type": "category",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 309,
+        "percent": 33.587
+      },
+      "categories": {
+        "downsloping": 63,
+        "flat": 345,
+        "upsloping": 203
+      },
+      "invalid": {},
+      "review": {},
+      "numeric": null
+    },
+    "ca": {
+      "storage_dtype": "string",
+      "expected_type": "integer",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 611,
+        "percent": 66.413
+      },
+      "categories": {},
+      "invalid": {},
+      "review": {},
+      "numeric": {
+        "count": 309,
+        "minimum": 0.0,
+        "median": 0.0,
+        "mean": 0.6764,
+        "maximum": 3.0
+      }
+    },
+    "thal": {
+      "storage_dtype": "string",
+      "expected_type": "category",
+      "role": "candidate predictor",
+      "missing": {
+        "count": 486,
+        "percent": 52.826
+      },
+      "categories": {
+        "fixed defect": 46,
+        "normal": 196,
+        "reversable defect": 192
+      },
+      "invalid": {},
+      "review": {},
+      "numeric": null
+    },
+    "num": {
+      "storage_dtype": "string",
+      "expected_type": "integer",
+      "role": "original target",
+      "missing": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "categories": {},
+      "invalid": {},
+      "review": {},
+      "numeric": {
+        "count": 920,
+        "minimum": 0.0,
+        "median": 1.0,
+        "mean": 0.9957,
+        "maximum": 4.0
+      }
+    }
+  },
+  "original_target": {
+    "0": 411,
+    "1": 265,
+    "2": 109,
+    "3": 107,
+    "4": 28
+  },
+  "binary_target": {
+    "0": 411,
+    "1": 509
+  },
+  "unknown_target": 0,
+  "invalid_target_tokens": {},
+  "hospitals": [
+    {
+      "hospital": "Cleveland",
+      "rows": 304,
+      "labeled": 304,
+      "positive": 139,
+      "prevalence_percent": 45.724,
+      "age_median": 55.5,
+      "missing": {
+        "id": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "age": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "sex": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "dataset": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "cp": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "trestbps": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "chol": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "fbs": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "restecg": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "thalch": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "exang": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "oldpeak": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "slope": {
+          "count": 1,
+          "percent": 0.329
+        },
+        "ca": {
+          "count": 5,
+          "percent": 1.645
+        },
+        "thal": {
+          "count": 3,
+          "percent": 0.987
+        },
+        "num": {
+          "count": 0,
+          "percent": 0.0
+        }
+      },
+      "review": {}
+    },
+    {
+      "hospital": "Hungary",
+      "rows": 293,
+      "labeled": 293,
+      "positive": 106,
+      "prevalence_percent": 36.177,
+      "age_median": 49.0,
+      "missing": {
+        "id": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "age": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "sex": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "dataset": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "cp": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "trestbps": {
+          "count": 1,
+          "percent": 0.341
+        },
+        "chol": {
+          "count": 23,
+          "percent": 7.85
+        },
+        "fbs": {
+          "count": 8,
+          "percent": 2.73
+        },
+        "restecg": {
+          "count": 1,
+          "percent": 0.341
+        },
+        "thalch": {
+          "count": 1,
+          "percent": 0.341
+        },
+        "exang": {
+          "count": 1,
+          "percent": 0.341
+        },
+        "oldpeak": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "slope": {
+          "count": 189,
+          "percent": 64.505
+        },
+        "ca": {
+          "count": 290,
+          "percent": 98.976
+        },
+        "thal": {
+          "count": 265,
+          "percent": 90.444
+        },
+        "num": {
+          "count": 0,
+          "percent": 0.0
+        }
+      },
+      "review": {}
+    },
+    {
+      "hospital": "Switzerland",
+      "rows": 123,
+      "labeled": 123,
+      "positive": 115,
+      "prevalence_percent": 93.496,
+      "age_median": 56.0,
+      "missing": {
+        "id": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "age": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "sex": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "dataset": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "cp": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "trestbps": {
+          "count": 2,
+          "percent": 1.626
+        },
+        "chol": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "fbs": {
+          "count": 75,
+          "percent": 60.976
+        },
+        "restecg": {
+          "count": 1,
+          "percent": 0.813
+        },
+        "thalch": {
+          "count": 1,
+          "percent": 0.813
+        },
+        "exang": {
+          "count": 1,
+          "percent": 0.813
+        },
+        "oldpeak": {
+          "count": 6,
+          "percent": 4.878
+        },
+        "slope": {
+          "count": 17,
+          "percent": 13.821
+        },
+        "ca": {
+          "count": 118,
+          "percent": 95.935
+        },
+        "thal": {
+          "count": 52,
+          "percent": 42.276
+        },
+        "num": {
+          "count": 0,
+          "percent": 0.0
+        }
+      },
+      "review": {
+        "chol": {
+          "zero": 123
+        },
+        "oldpeak": {
+          "negative ST depression": 11
+        }
+      }
+    },
+    {
+      "hospital": "VA Long Beach",
+      "rows": 200,
+      "labeled": 200,
+      "positive": 149,
+      "prevalence_percent": 74.5,
+      "age_median": 60.0,
+      "missing": {
+        "id": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "age": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "sex": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "dataset": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "cp": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "trestbps": {
+          "count": 56,
+          "percent": 28.0
+        },
+        "chol": {
+          "count": 7,
+          "percent": 3.5
+        },
+        "fbs": {
+          "count": 7,
+          "percent": 3.5
+        },
+        "restecg": {
+          "count": 0,
+          "percent": 0.0
+        },
+        "thalch": {
+          "count": 53,
+          "percent": 26.5
+        },
+        "exang": {
+          "count": 53,
+          "percent": 26.5
+        },
+        "oldpeak": {
+          "count": 56,
+          "percent": 28.0
+        },
+        "slope": {
+          "count": 102,
+          "percent": 51.0
+        },
+        "ca": {
+          "count": 198,
+          "percent": 99.0
+        },
+        "thal": {
+          "count": 166,
+          "percent": 83.0
+        },
+        "num": {
+          "count": 0,
+          "percent": 0.0
+        }
+      },
+      "review": {
+        "trestbps": {
+          "zero": 1
+        },
+        "chol": {
+          "zero": 49
+        },
+        "oldpeak": {
+          "negative ST depression": 1
+        }
+      }
+    }
+  ],
+  "duplicate_excess": {
+    "all_fields": 0,
+    "excluding_id": 2,
+    "repeated_valid_identifier": 0
+  },
+  "errors": []
+}

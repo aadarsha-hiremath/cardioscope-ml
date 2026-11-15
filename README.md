@@ -4,7 +4,15 @@
 
 **Research question.** How well do heart disease classification models generalize across different hospital populations, and how reliable are their predicted probabilities?
 
-**Phase 2 delivers split generation and training-only preprocessing.** The CPU workflow runs two feature tiers and two cholesterol policies across a pooled holdout and four held-out hospitals. The 920-record Phase 1 audit remains the baseline. Predictive model fitting and calibration are planned work. [Source investigation](reports/data-quality-investigation.md) · [Evaluation protocol](docs/evaluation.md) · [Phase 1 audit](reports/dataset-audit.md)
+**Phase 3 compares three classifiers on a pooled holdout.** Logistic Regression had the highest training-only mean average precision for the primary early tier (0.8594), followed closely by Random Forest (0.8588). At the locked 0.45 threshold, Logistic Regression identified 91 of 102 recorded positives and correctly classified 55 of 83 recorded negatives. Its held-out balanced accuracy was 0.777 (95% group-bootstrap interval 0.717–0.836). [Full comparison with confusion matrices](reports/phase3/pooled-both.md) · [Training-only selection record](reports/phase3/cv-both.json)
+
+| Model | Early CV AP | Early holdout AP | Extended CV AP | Extended holdout AP |
+| --- | ---: | ---: | ---: | ---: |
+| Logistic Regression | 0.8594 | 0.893 | 0.9029 | 0.921 |
+| Random Forest | 0.8588 | 0.895 | 0.8979 | 0.911 |
+| XGBoost | 0.8528 | 0.876 | 0.9025 | 0.907 |
+
+CV AP averages five development-fold scores. Holdout AP summarizes one shared set of 185 records. The extended tier includes diagnostic workup and addresses a later information setting. [Dataset audit](reports/dataset-audit.md) · [Feature availability](docs/evaluation.md)
 
 ## Why compare hospitals?
 
@@ -45,6 +53,23 @@ Run the package installation above once after switching branches to install scik
 
 The six-field early tier assumes routine blood results are available. The 13-field extended tier adds resting ECG, exercise testing and diagnostic measurements. The default preserves cholesterol zeros. The sensitivity run masks only cholesterol zeros and fits the imputer on training rows. The two fixed designs evaluate the observed site mixture (735 train, 185 held out) and transfer to each whole hospital. [Feature schema and leakage controls](docs/evaluation.md) · [Fit record](reports/preprocessing-protocol.json) · [Source comparison commands](reports/data-quality-investigation.md)
 
+### Reproduce the model comparison
+
+Use the locked environment above. The CV stage trains two prespecified configurations for each of the three classifiers. All share one split and the same duplicate-grouped folds. Each fit starts with a fresh Phase 2 preprocessor inside a scikit-learn pipeline. Select by mean fold average precision and fix the threshold using development out-of-fold balanced accuracy. The evaluation stage checks the selection digest, environment, CSV and split, refits the selected pipelines, and writes aggregate JSON and Markdown.
+
+```powershell
+$csv = "data/raw/heart_disease_uci.csv"
+$tier = "both"
+$out = "reports/phase3"
+.\.venv\Scripts\python.exe -m cardioscope.experiment --stage cv --tier $tier --input $csv --output-dir $out
+.\.venv\Scripts\python.exe -m cardioscope.experiment --stage evaluate --tier $tier --input $csv --output-dir $out
+.\.venv\Scripts\python.exe -m cardioscope.experiment --stage report --tier $tier --output-dir $out
+```
+
+Use `early` or `extended` for a single tier and use the same tier for all three commands. To preserve the published run timings, choose a different output directory for a replay. Check each command’s exit code. A failed stage returns 1 and records a failure in the output directory when writable. The report stage can regenerate Markdown directly from evaluation JSON. No serialized model is required.
+
+All fits used one CPU thread, seed 2026 and as-recorded cholesterol. Logistic Regression uses L2 regularization, Random Forest averages bootstrap trees, and XGBoost fits shallow boosted trees with a binary logistic objective. The preregistered grids, tie-breaks, thresholds and uncertainty calculation are documented. [Frozen protocol](docs/model-selection.md) · [Machine-readable results](reports/phase3/pooled-both.json)
+
 ### Run the quality checks
 
 ```powershell
@@ -64,6 +89,7 @@ Tests generate invented records in temporary directories. The source CSV is need
 | `src/cardioscope/data/` | CSV structure and byte checksum, field definitions, validation, derived labels and aggregate statistics |
 | `src/cardioscope/cli.py`, `report.py` | Explicit input path, exit status and deterministic Markdown/JSON rendering |
 | `src/cardioscope/preprocessing.py`, `splits.py`, `protocol.py` | Feature tiers, training pipelines, split safeguards and aggregate transformation records |
+| `src/cardioscope/training.py`, `scoring.py`, `experiment.py`, `comparison.py` | Development-fold selection, binary metrics, pooled experiment CLI and report rendering |
 | `scripts/compare_sources.py` | Reconcile the combined CSV against UCI’s four processed files and screen for near matches |
 | `data/raw/` | Local, Git-ignored source files |
 | `tests/`, `reports/`, `docs/` | Synthetic regression tests, real-data audit evidence and research design |
@@ -72,8 +98,8 @@ Tests generate invented records in temporary directories. The source CSV is need
 
 ## Limitations and planned experiments
 
-These historical records describe selected hospital populations. Their positive fractions describe this sample. Four sites and small within-site class counts limit estimates of transfer and calibration. The combined release has unresolved zero encodings and matching records under different IDs. This audit provides no estimate of predictive performance.
+These historical records describe selected hospital populations. The holdout represents their observed mixture. Sparse diagnostic tests, unresolved zero encodings and one disputed hospital label limit interpretation. The bootstrap intervals condition on the fitted pipelines and this evaluation sample. Probabilities estimate the recorded dataset label. Calibration and transport to an unseen site remain open research questions. [Source investigation](reports/data-quality-investigation.md)
 
-Phase 3 is pending approval. Its proposed comparisons are Logistic Regression, Random Forest and XGBoost, with training-only tuning and separate assessment of discrimination and probability calibration. [Training plan](docs/evaluation.md)
+Phase 4 awaits approval. Its proposed design holds out each complete hospital, repeats tuning and threshold selection using only the remaining sites, and evaluates calibration and cholesterol-zero sensitivity under prespecified rules. Rows serve different roles across the pooled and hospital experiments. [Phase 4 boundary](docs/model-selection.md)
 
 **Original data citation.** Janosi, A., Steinbrunn, W., Pfisterer, M., & Detrano, R. (1989). *Heart Disease* [Dataset]. UCI Machine Learning Repository. [DOI 10.24432/C52P4X](https://doi.org/10.24432/C52P4X)

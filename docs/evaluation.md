@@ -41,7 +41,9 @@ The original research group describes fluoroscopy and thallium perfusion imaging
 
 Four hospitals provide four observed transfer settings. Switzerland’s eight negative records mean one changed negative classification moves measured specificity by 12.5 percentage points. A pooled estimate can conceal site differences in precision or probability reliability. Missingness and selection differ across sites, and one combined-release site label is disputed. No partition removes those limitations. [Source investigation](../reports/data-quality-investigation.md)
 
-## Phase 3 training plan, pending approval
+## Model development and transfer evaluation
+
+The pooled Phase 3 comparison is complete. Commit `6a0951e` freezes the six selected configurations and thresholds before evaluation. The remaining hospital-level experiments require Phase 4 approval. [Pooled comparison](../reports/phase3/pooled-both.md) · [Frozen selection rules](model-selection.md)
 
 - Freeze the feature tiers, zero policies, metrics, tuning budgets and use of each holdout before training. Start with Logistic Regression as the baseline, then compare Random Forest and XGBoost on the same eligible rows and groups.
 - For pooled model selection, run group-preserving stratified CV entirely within the 735 training records. Start each inner fold from its eligible **untransformed** features and put a fresh `build_preprocessor(tier)` and estimator inside one pipeline. Reusing the outer-preprocessed training matrix inside CV would leak inner validation statistics.

@@ -23,3 +23,4 @@ threadpoolctl==3.8.0
 types-pytz==2026.6.0.20261031
 typing_extensions==4.16.0
 tzdata==2026.6
+xgboost==3.4.1

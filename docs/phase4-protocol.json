@@ -1,0 +1,233 @@
+{
+  "design": "Retrospective transfer stress test. All hospitals informed previous pooled development.",
+  "dataset_sha256": "574f2fa2b43012fa25fca4fcdb36bd7c6bccdd0af4242f6c0e4c8633c5a072ae",
+  "phase3_selection": "6a0951e011dc2ec2bc4af40b0efd5571cb8cc736",
+  "phase3_final": "b2aa8e04691ef29d7a6f0bc07ddb1fe5dafaba98",
+  "sites": {
+    "Cleveland": {
+      "test": 304,
+      "train": 616,
+      "positive": 139,
+      "negative": 165,
+      "training_exclusions": 0
+    },
+    "Hungary": {
+      "test": 293,
+      "train": 627,
+      "positive": 106,
+      "negative": 187,
+      "training_exclusions": 0
+    },
+    "Switzerland": {
+      "test": 123,
+      "train": 797,
+      "positive": 115,
+      "negative": 8,
+      "training_exclusions": 0
+    },
+    "VA Long Beach": {
+      "test": 200,
+      "train": 720,
+      "positive": 149,
+      "negative": 51,
+      "training_exclusions": 0
+    }
+  },
+  "endpoint": "num 0 -> 0, num 1..4 -> 1; keep unmodified ID, site and original target as metadata only",
+  "tiers": {
+    "early": [
+      "age",
+      "sex",
+      "cp",
+      "trestbps",
+      "chol",
+      "fbs"
+    ],
+    "extended": [
+      "age",
+      "sex",
+      "cp",
+      "trestbps",
+      "chol",
+      "fbs",
+      "restecg",
+      "thalch",
+      "exang",
+      "oldpeak",
+      "slope",
+      "ca",
+      "thal"
+    ]
+  },
+  "exclusions": [
+    "id",
+    "dataset",
+    "num",
+    "heart_disease_recorded"
+  ],
+  "duplicate_policy": "Normalized full 13-predictor groups before recoding. Keep complete validation site and purge its overlapping groups from fitting at both inner and outer levels.",
+  "primary": {
+    "tier": "early",
+    "family": "logistic",
+    "cholesterol": "as_recorded",
+    "calibration": "raw"
+  },
+  "models": [
+    {
+      "tier": "early",
+      "family": "logistic",
+      "value": 1.0,
+      "parameters": {
+        "C": 1.0,
+        "solver": "lbfgs",
+        "l1_ratio": 0.0,
+        "fit_intercept": true,
+        "max_iter": 2000,
+        "tol": 0.0001,
+        "class_weight": null,
+        "random_state": 2026
+      }
+    },
+    {
+      "tier": "early",
+      "family": "forest",
+      "value": 4,
+      "parameters": {
+        "n_estimators": 160,
+        "max_depth": 4,
+        "min_samples_leaf": 4,
+        "max_features": "sqrt",
+        "criterion": "gini",
+        "bootstrap": true,
+        "class_weight": null,
+        "random_state": 2026,
+        "n_jobs": 1
+      }
+    },
+    {
+      "tier": "early",
+      "family": "xgboost",
+      "value": 2,
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 2,
+        "learning_rate": 0.05,
+        "min_child_weight": 1,
+        "reg_lambda": 1,
+        "reg_alpha": 0,
+        "subsample": 1,
+        "colsample_bytree": 1,
+        "scale_pos_weight": 1,
+        "booster": "gbtree",
+        "objective": "binary:logistic",
+        "eval_metric": "logloss",
+        "tree_method": "hist",
+        "device": "cpu",
+        "random_state": 2026,
+        "n_jobs": 1
+      }
+    },
+    {
+      "tier": "extended",
+      "family": "logistic",
+      "value": 0.1,
+      "parameters": {
+        "C": 0.1,
+        "solver": "lbfgs",
+        "l1_ratio": 0.0,
+        "fit_intercept": true,
+        "max_iter": 2000,
+        "tol": 0.0001,
+        "class_weight": null,
+        "random_state": 2026
+      }
+    },
+    {
+      "tier": "extended",
+      "family": "forest",
+      "value": 4,
+      "parameters": {
+        "n_estimators": 160,
+        "max_depth": 4,
+        "min_samples_leaf": 4,
+        "max_features": "sqrt",
+        "criterion": "gini",
+        "bootstrap": true,
+        "class_weight": null,
+        "random_state": 2026,
+        "n_jobs": 1
+      }
+    },
+    {
+      "tier": "extended",
+      "family": "xgboost",
+      "value": 2,
+      "parameters": {
+        "n_estimators": 120,
+        "max_depth": 2,
+        "learning_rate": 0.05,
+        "min_child_weight": 1,
+        "reg_lambda": 1,
+        "reg_alpha": 0,
+        "subsample": 1,
+        "colsample_bytree": 1,
+        "scale_pos_weight": 1,
+        "booster": "gbtree",
+        "objective": "binary:logistic",
+        "eval_metric": "logloss",
+        "tree_method": "hist",
+        "device": "cpu",
+        "random_state": 2026,
+        "n_jobs": 1
+      }
+    }
+  ],
+  "fit": "Phase 3 selections are fixed. No new search. Fit fresh Phase 2 median/standardization and categorical missing-token/one-hot pipeline on every permitted fitting partition. Fit final pipeline on three training hospitals.",
+  "inner": "Three leave-one-training-hospital-out folds, train on two sites each. Concatenate predictions in training row order; observation-weighted threshold and sigmoid fit. Fail if a fitting fold lacks either class.",
+  "threshold": "Maximize balanced accuracy on raw training OOF probabilities; inclusive cuts 0.20 to 0.80 by 0.05; ties closest to 0.50 then lower. Map locked cutoff through the positive-slope sigmoid for calibrated classifications, preserving operating point.",
+  "calibration": "Compare raw and sigmoid for every model and policy. Fit logistic regression C=1, lbfgs, tol=1e-8, max_iter=2000 to training OOF log odds clipped to [1e-6,1-1e-6] in probability space. Require >=20 examples of each class, varying OOF scores and strictly positive fitted slope; otherwise mark unavailable. Never choose a method by outer scores.",
+  "diagnostics": "Five fixed equal-width reliability bins with counts, mean probability and observed fraction. Calibration-in-the-large intercept with offset logit(p); free-intercept unpenalized logistic slope if both classes, score variation and overlap. Flag sparse class (<20). Diagnostic regressions do not update predictions.",
+  "cholesterol": [
+    "as_recorded",
+    "zero_as_missing"
+  ],
+  "sensitivity": "For paired cases compare mean absolute probability change, changed decisions, delta BA, AUC, Brier and log loss. Descriptive flag if mean absolute probability shift >=0.05 or absolute BA shift >=0.05. No policy selection.",
+  "metrics": [
+    "accuracy",
+    "balanced_accuracy",
+    "sensitivity",
+    "specificity",
+    "precision",
+    "f1",
+    "tn",
+    "fp",
+    "fn",
+    "tp",
+    "roc_auc",
+    "average_precision",
+    "ap_minus_prevalence",
+    "ap_over_prevalence",
+    "brier",
+    "log_loss"
+  ],
+  "aggregation": "Per site first. Equal-site and record-count-weighted means of site metrics; report contributing sites. No pooling of probabilities across fitted models.",
+  "uncertainty": {
+    "seed": 2026,
+    "repetitions": 2000,
+    "method": "Within each held-out site sample whole predictor groups uniformly with replacement; common draws across configurations. Percentile 95% bounds for BA, sensitivity, specificity, AUROC, omitting replicates where that metric is undefined. Paired BA differences for extended LR minus early LR and early XGBoost minus early LR under raw/as-recorded. Conditional on fitted models. No multiplicity adjustment."
+  },
+  "failure_analysis": "Pairwise thresholded model disagreement in each tier; FP and FN and errors at p>=0.9 or p<=0.1. Compare named site prevalence, missingness and cholesterol zeros. Descriptive unless paired conditional intervals support a difference.",
+  "software": {
+    "python": "3.12.14",
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.4.1",
+    "threadpoolctl": "3.8.0",
+    "matplotlib": "3.10.8"
+  },
+  "seed": 2026,
+  "cpu_threads": 1,
+  "report_precision": "six decimals JSON; three decimals tables; full precision throughout calculation"
+}

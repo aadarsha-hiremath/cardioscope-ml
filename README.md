@@ -4,6 +4,8 @@
 
 **Research question.** How well do heart disease classification models generalize across different hospital populations, and how reliable are their predicted probabilities?
 
+**Phase 4 found that both the error pattern and probability reliability changed across hospitals.** In a retrospective transfer stress test, early Logistic Regression had balanced accuracy of 0.776 in Cleveland and 0.607 at VA Long Beach. It missed 61 of 106 positives in Hungary. In Switzerland it assigned an average probability of 0.710 against 0.935 observed prevalence. All four hospitals had informed earlier pooled development. [Research findings](reports/phase4/reliability-findings.md) · [Four hospital result tables](reports/phase4/hospital-comparison.md) · [Calibration](reports/phase4/calibration-analysis.md) · [Cholesterol sensitivity](reports/phase4/cholesterol-sensitivity.md)
+
 **Phase 3 compares three classifiers on a pooled holdout.** Logistic Regression had the highest training-only mean average precision for the primary early tier (0.8594), followed closely by Random Forest (0.8588). At the locked 0.45 threshold, Logistic Regression identified 91 of 102 recorded positives and correctly classified 55 of 83 recorded negatives. Its held-out balanced accuracy was 0.777 (95% group-bootstrap interval 0.717–0.836). [Full comparison with confusion matrices](reports/phase3/pooled-both.md) · [Training-only selection record](reports/phase3/cv-both.json)
 
 | Model | Early CV AP | Early holdout AP | Extended CV AP | Extended holdout AP |
@@ -70,6 +72,18 @@ Use `early` or `extended` for a single tier and use the same tier for all three 
 
 All fits used one CPU thread, seed 2026 and as-recorded cholesterol. Logistic Regression uses L2 regularization, Random Forest averages bootstrap trees, and XGBoost fits shallow boosted trees with a binary logistic objective. The preregistered grids, tie-breaks, thresholds and uncertainty calculation are documented. [Frozen protocol](docs/model-selection.md) · [Machine-readable results](reports/phase3/pooled-both.json)
 
+### Reproduce Phase 4
+
+From the repository root, use Python 3.12.14 and the locked environment above. This command checks the manifest, software versions and dataset checksum, runs all four outer experiments, and regenerates the aggregate JSON, four Markdown reports and two figures. Add `--output-dir .venv/phase4-replay` for a separate replay.
+
+```powershell
+.\.venv\Scripts\python.exe -m cardioscope.transfer --input data/raw/heart_disease_uci.csv
+```
+
+Commit `7103b157534040b6e29a55d8fa00660eff6c8813` froze the protocol before site evaluation. The Phase 4 brief specified fixed Phase 3 configurations, superseding the earlier proposal for a new inner hyperparameter search. Each outer run refits preprocessing and learns its threshold and optional sigmoid from three training-site holdouts. Both zero policies and probability methods are reported. The scientific digest covers the metadata, metrics, prediction digests and interval estimates. Elapsed time is recorded separately. [Manifest](docs/phase4-protocol.json) · [Machine-readable results](reports/phase4/hospital-results.json)
+
+The reference run and a fresh replay both produced scientific SHA-256 `c5ceaaf55c4e88916d07265962e10c5100d96d3fc4a45ff58d928acb8d0e280c`. The four Markdown reports and two PNG figures reproduced byte-for-byte. All 920 records appear once as outer evaluation cases per configuration. The duplicate policy excluded zero training rows at both the outer and inner boundaries of this release.
+
 ### Run the quality checks
 
 ```powershell
@@ -90,6 +104,7 @@ Tests generate invented records in temporary directories. The source CSV is need
 | `src/cardioscope/cli.py`, `report.py` | Explicit input path, exit status and deterministic Markdown/JSON rendering |
 | `src/cardioscope/preprocessing.py`, `splits.py`, `protocol.py` | Feature tiers, training pipelines, split safeguards and aggregate transformation records |
 | `src/cardioscope/training.py`, `scoring.py`, `experiment.py`, `comparison.py` | Development-fold selection, binary metrics, pooled experiment CLI and report rendering |
+| `src/cardioscope/transfer.py`, `reliability.py`, `transfer_report.py` | Nested site splits with fixed models, threshold and calibration fitting, paired bootstrap comparisons, reports and figures |
 | `scripts/compare_sources.py` | Reconcile the combined CSV against UCI’s four processed files and screen for near matches |
 | `data/raw/` | Local, Git-ignored source files |
 | `tests/`, `reports/`, `docs/` | Synthetic regression tests, real-data audit evidence and research design |
@@ -100,6 +115,6 @@ Tests generate invented records in temporary directories. The source CSV is need
 
 These historical records describe selected hospital populations. The holdout represents their observed mixture. Sparse diagnostic tests, unresolved zero encodings and one disputed hospital label limit interpretation. The bootstrap intervals condition on the fitted pipelines and this evaluation sample. Probabilities estimate the recorded dataset label. Calibration and transport to an unseen site remain open research questions. [Source investigation](reports/data-quality-investigation.md)
 
-Phase 4 awaits approval. Its proposed design holds out each complete hospital, repeats tuning and threshold selection using only the remaining sites, and evaluates calibration and cholesterol-zero sensitivity under prespecified rules. Rows serve different roles across the pooled and hospital experiments. [Phase 4 boundary](docs/model-selection.md)
+Phase 4 estimates transfer among these four historical sources. The paired comparisons are conditional on their fitted pipelines. For Phase 5, identify a genuinely untouched cohort with compatible outcome definitions and documented feature timing, then register the model, cutoff, calibration assessment and uncertainty analysis before opening its outcomes. [Retrospective study limitations](reports/phase4/reliability-findings.md)
 
 **Original data citation.** Janosi, A., Steinbrunn, W., Pfisterer, M., & Detrano, R. (1989). *Heart Disease* [Dataset]. UCI Machine Learning Repository. [DOI 10.24432/C52P4X](https://doi.org/10.24432/C52P4X)

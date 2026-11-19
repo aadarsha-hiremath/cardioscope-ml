@@ -18,7 +18,7 @@ CV AP averages five development-fold scores. Holdout AP summarizes one shared se
 
 ## Explore the research dashboard
 
-Phase 5 adds eight Streamlit pages: research overview, aggregate dataset exploration, model comparisons, hospital reliability, calibration/sensitivity, a fictional prediction sandbox, an SQLAlchemy experiment registry, and reproducibility documentation. The navy/slate workspace uses interactive Plotly charts. Displayed evidence is checked against frozen report fingerprints. The dashboard runs on CPU and does not retrain during navigation.
+The dashboard includes Research Overview, Dataset Explorer, Model Laboratory, Hospital Reliability, Calibration & Sensitivity, Prediction Lab, Experiment Registry, and Methodology & Reproducibility. The navy/slate workspace uses interactive Plotly charts. Displayed evidence is checked against frozen report fingerprints. The dashboard runs on CPU and does not retrain during navigation.
 
 From the repository root in PowerShell (create `.venv` with `py -3.12 -m venv .venv` if needed):
 
@@ -28,15 +28,15 @@ From the repository root in PowerShell (create `.venv` with `py -3.12 -m venv .v
 .\.venv\Scripts\python.exe -m streamlit run app/serve.py
 ```
 
-Open [the local dashboard](http://127.0.0.1:8501). Aggregate research pages work without the raw CSV. The optional fictional sandbox remains disabled until you explicitly build a local model that reproduces the recorded Phase 3 holdout prediction digest:
+Open [the local dashboard](http://127.0.0.1:8501). Aggregate research pages work without the raw CSV. Prediction Lab requires a locally verified model. This explicit build command checks that the model reproduces the recorded Phase 3 holdout prediction digest:
 
 ```powershell
 .\.venv\Scripts\python.exe -m cardioscope.dashboard.sandbox
 ```
 
-This command requires the exact local CSV and locked environment. No serialized model or raw dataset is committed. The sandbox's experimental score is **not a clinically validated probability of disease**. Ordinary inference stays transient. Signed-in users may explicitly save a private report for an unedited built-in example.
+This command requires the exact local CSV and locked environment. No serialized model or raw dataset is committed. Choose **Start Prediction** on Research Overview to enter invented example measurements in Prediction Lab. Do not enter real patient data. The result shows the experimental score, historical dataset class, model provenance, and the inputs used for that run. **Save Report** stores the output and provenance under a private title. Measurements remain transient.
 
-Sign in or create an account on the Welcome page to open Research Overview. **Keep me signed in on this device** is selected by default and lasts up to 30 days. Clear it on shared devices and use **Logout** in the sidebar to end the session. **Settings** saves chart and research defaults, **My Reports** holds your fictional profiles and private reports, and **Shared Fictional Reports** displays the result fields owners opted to share. The 102 research experiments remain in the verified catalog. [Workspace setup, privacy, and backups](docs/workspaces.md)
+Sign in or create an account on the Welcome page to open Research Overview. **Keep me signed in on this device** is selected by default and lasts up to 30 days. Clear it on shared devices and use **Logout** in the sidebar to end the session. **Settings** saves chart and research defaults. **My Reports** holds private reports and any previously saved profiles. **Shared Reports** displays only result summaries that owners explicitly approved. The 102 research experiments remain in the verified catalog. [Workspace setup, privacy, and backups](docs/workspaces.md)
 
 ![Running research overview](artifacts/phase5/overview-desktop.png)
 

@@ -1,4 +1,4 @@
-# Phase 5 research dashboard
+# Research dashboard
 
 CardioScope ML presents verified retrospective evidence about hospital transfer, missing measurements and probability reliability. It does not establish clinical validity. All four hospitals informed earlier pooled development; an untouched external cohort is still needed.
 
@@ -15,7 +15,7 @@ py -3.12 -m venv .venv
 
 Open `http://127.0.0.1:8501`. The server binds to loopback. Analytics collection is disabled. The eight research pages work from tracked aggregate reports; a raw CSV, GPU and PostgreSQL server are not required. With file watching disabled, restart the server after editing application code.
 
-The Welcome page gates dashboard access. Registration signs you in and opens Research Overview immediately. The authenticated sidebar includes Account, Settings, My Reports, Shared Fictional Reports, and Logout. Workspace storage uses the same database as the separate research catalog. [Session and workspace guide](workspaces.md)
+The Welcome page gates dashboard access. Registration signs you in and opens Research Overview immediately. The authenticated sidebar includes Account, Settings, My Reports, Shared Reports, and Logout. Workspace storage uses the same database as the separate research catalog. [Session and workspace guide](workspaces.md)
 
 ## Pages
 
@@ -26,7 +26,7 @@ The Welcome page gates dashboard access. Registration signs you in and opens Res
 | Model Laboratory | Three models, two tiers, pooled holdout or training-only CV; AP comparison, nine metrics, thresholds, confusion matrix and configuration |
 | Hospital Reliability | Four held-out hospitals, model/tier controls, training arrangement, counts, metrics and group-bootstrap intervals |
 | Calibration & Sensitivity | Recorded reliability bins, raw/sigmoid scores, Brier/log loss, mean score versus prevalence, paired cholesterol-policy changes |
-| Prediction Sandbox | Explicitly fictional early-tier inputs, verified local pipeline, validation/reset and experimental output |
+| Prediction Lab | Manual example measurements, verified early-tier pipeline, experimental score and class, and optional private result saving |
 | Experiment Registry | Idempotent aggregate import, SQLite storage, filters, metadata inspection and selected-record comparisons |
 | Methodology & Reproducibility | Expandable protocols, attribution, downloadable source documents, external-validation requirements |
 
@@ -40,6 +40,7 @@ app/views/*.py                     research and personal workspace entrypoints
 app/assets/wordmark.svg            local vector wordmark
 src/cardioscope/dashboard/
   pages.py                        reusable native layouts and views
+  prediction_lab.py               manual input, transient results and explicit report saving
   charts.py                       aggregate Plotly figures and styling
   evidence.py                     report fingerprints and semantic validation
   sandbox.py                      explicit refit CLI and verified inference loader
@@ -49,11 +50,11 @@ docs/dashboard-artifacts.json      frozen report byte fingerprints (LF-normalize
 tests/test_dashboard.py            service and Streamlit AppTest coverage
 ```
 
-The approved analytics/laboratory hybrid uses navy backgrounds, slate cards, cyan comparisons, restrained teal accents and amber limitations. Native themes, forms, selectors, focus behavior, containers and responsive columns supply the UI. A tiny CSS rule colors only the documented `st-key-` classes of application-owned metric cards. No generated DOM selectors, injected JavaScript, remote fonts, external images or unofficial components are used. Text uses the bundled sans-serif default; Plotly uses Inter only if the client already has it, then system sans-serif.
+The approved analytics/laboratory hybrid uses navy backgrounds, slate cards, cyan comparisons, restrained teal accents and amber limitations. The research views use native Streamlit widgets, responsive columns, and local assets. A small CSS rule colors the documented `st-key-` classes of application-owned metric cards. Text uses the bundled sans-serif default. Plotly uses Inter when the client has it, with a system sans-serif fallback.
 
 Report bytes are checked on each page rerun so missing or changed evidence cannot be hidden by a stale report cache. The manifest pins six authoritative artifacts. Semantic checks cover dataset identity, protocol equality, result coverage, metrics, outcome counts, uncertainty bounds and calibration-bin counts. These are trusted repository files, not an upload format. Updating research evidence requires deliberate review and manifest regeneration; the UI never does that automatically. Existing Phase 1â€“4 code, reports, dataset provenance and frozen protocols are unchanged.
 
-Only the sandbox loads a fitted model. A one-entry cache is keyed by the verified model bytes; compatibility and byte checks still run before every access. It never caches fictional profiles or scores. No training or research experiment runs during navigation.
+Only Prediction Lab loads a fitted model. A one-entry cache is keyed by the verified model bytes. Compatibility and byte checks still run before every access. Measurements and scores stay outside the model cache. No training or research experiment runs during navigation.
 
 ## Local demonstration model
 
@@ -67,7 +68,7 @@ This uses existing Phase 2â€“3 preparation, grouped split and model-constru
 
 Loading checks dataset and selection fingerprints, family/tier, hyperparameters, threshold, prediction digest, library compatibility, model-byte checksum, input columns and class ordering. Missing, corrupt or incompatible files disable submission. Joblib is a trusted-local serialization boundary: a checksum does **not** make an attacker-controlled pickle safe. Never replace both local files with downloaded models. There is no upload endpoint or user-selectable model path.
 
-The form accepts six early features and intentionally synthetic examples. Bounds are demonstration constraints rather than clinical reference ranges. Cholesterol zero remains as recorded, matching the selected model. Inputs travel only to the loopback server. Ordinary inference and edited inputs remain transient. A signed-in user can explicitly save an unedited built-in example's result in the personal workspace. No feature vector is stored. Output describes a historical dataset class and an experimental score. Changing examples clears the output, and reset restores that example's defaults. [Persistence and sharing rules](workspaces.md)
+Select **Start Prediction** on Research Overview. The six early-tier fields start blank. Enter invented measurements only and leave unknown fields blank for the fitted imputers. At least one measurement is required. Bounds are demonstration constraints. Cholesterol zero remains as entered, matching the selected model. **Run Prediction** shows an experimental score, the predicted historical class, the model provenance, and a transient input summary. Editing a measurement clears the result. **New Prediction** clears inputs and results. **Save Report** stores an output-only summary under a private title. Do not enter real patient data. [Persistence and sharing rules](workspaces.md)
 
 ## Aggregate experiment tracking
 
@@ -98,7 +99,7 @@ The Phase 4 starting point was clean commit `2aad6f3`, with 39 passing tests. Ph
 .\.venv\Scripts\python.exe -m pip check
 ```
 
-The real local Streamlit server and browser were exercised. See [visual verification](dashboard-visual-review.md) for actual screenshots and observations. Results reflect this local environment, not a portable latency guarantee. Report navigation requires no training. Only the optional sandbox refit needs raw data; inference runs on CPU.
+The real local Streamlit server and browser were exercised. See [the Phase 5 visual review](dashboard-visual-review.md) for historical screenshots and observations. Results reflect that local environment. Report navigation requires no training. Only the optional local model build needs raw data. Inference runs on CPU.
 
 Limitations remain scientific and operational: the dataset is small and historical; subgroup support is uneven; Switzerland has few negative outcomes; recorded-zero meanings are unresolved; missingness can encode site collection practices; extended diagnostic fields imply a later information setting. Within-site intervals do not capture future population uncertainty. A local registry is not a multi-user clinical system. The original CSV's redistribution permission is unresolved and it remains ignored. See [attribution and license details](provenance.md).
 

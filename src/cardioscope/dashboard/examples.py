@@ -1,4 +1,4 @@
-"""The only input vectors permitted in saved fictional workspaces."""
+"""Synthetic regression fixtures and references from earlier saved profiles."""
 
 from .evidence import Record
 from .sandbox import PROFILE
@@ -23,6 +23,6 @@ EXAMPLES: dict[str, Record] = {
 }
 
 REPORT_DISCLAIMER = (
-    "Built-in fictional example. Experimental model score — not a clinically "
+    "For educational research only. The experimental score is not a clinically "
     "validated probability of disease."
 )

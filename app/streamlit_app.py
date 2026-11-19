@@ -18,6 +18,7 @@ st.logo(str(Path(__file__).parent / "assets/wordmark.svg"), size="large")
 st.html("""<style>
 [class*="st-key-metric_card_"] { background-color: #18243A; }
 .st-key-contrast_submit button:not(:disabled),
+.st-key-contrast_save button:not(:disabled),
 .st-key-contrast_import button:not(:disabled) { color: #0B1120; }
 </style>""")
 
@@ -30,14 +31,14 @@ groups = {
         ("calibration", "Calibration & Sensitivity", "tune"),
     ],
     "WORKSPACE": [
-        ("sandbox", "Prediction Sandbox", "experiment"),
+        ("sandbox", "Prediction Lab", "experiment"),
         ("registry", "Experiment Registry", "database"),
     ],
     "PERSONAL WORKSPACE": [
         ("account", "Account", "account_circle"),
         ("settings", "Settings", "settings"),
         ("my_reports", "My Reports", "folder"),
-        ("shared_reports", "Shared Fictional Reports", "share"),
+        ("shared_reports", "Shared Reports", "share"),
     ],
     "DOCUMENTATION": [("methodology", "Methodology & Reproducibility", "menu_book")],
 }

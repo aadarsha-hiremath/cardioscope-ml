@@ -123,6 +123,9 @@ def overview(e: Evidence) -> None:
         ),
     )
     st.info(DISCLAIMER, icon=":material/info:")
+    with st.container(key="contrast_submit"):
+        if st.button("Start Prediction", type="primary", icon=":material/experiment:"):
+            st.switch_page("views/sandbox.py")
     primary = e.protocol["primary"]
     sites = e.transfer["sites"]
     values = [site_run(s, primary["family"], primary["tier"]) for s in sites]
@@ -652,154 +655,13 @@ def calibration(e: Evidence) -> None:
 
 
 def sandbox(e: Evidence) -> None:
-    from cardioscope.data.schema import FIELDS
-
-    from .examples import EXAMPLES
-    from .sandbox import LIMITS, expected_metadata, load_verified, validate_profile
-    from .workspace_schema import WorkspaceError
-    from .workspace_ui import active_account, store, token
+    from .prediction_lab import render
 
     header(
-        "Educational Prediction Sandbox",
-        ("A fictional profile passed through the exact fitted early Logistic Regression pipeline."),
+        "Prediction Lab",
+        "Enter example measurements to explore the verified early Logistic Regression model.",
     )
-    st.info(DISCLAIMER)
-    st.caption(
-        "Use synthetic values only. Ordinary runs are transient. An account can explicitly "
-        "save reports for built-in, unedited fictional examples."
-    )
-    account = active_account()
-    saved_examples = {}
-    if account is not None:
-        try:
-            saved_examples = {p.id: p for p in store().profiles(token())}
-        except WorkspaceError as exc:
-            st.error(str(exc))
-            return
-        st.page_link("views/my_reports.py", label="Manage fictional profiles and reports")
-
-    options = [*EXAMPLES, *saved_examples]
-    preset = st.selectbox(
-        "Synthetic example",
-        options,
-        index=0 if account is None else None,
-        format_func=lambda key: f"{saved_examples[key].name} · {saved_examples[key].example}"
-        if key in saved_examples
-        else key,
-        key=widget_key("sandbox_preset"),
-    )
-    if preset is None:
-        st.info("Choose a built-in example or one of your saved fictional profiles to begin.")
-        return
-    saved_profile = saved_examples.get(preset)
-    example = saved_profile.example if saved_profile else preset
-    defaults = EXAMPLES[example]
-
-    model = None
-    try:
-        model = load_verified(e)
-    except EvidenceError as exc:
-        st.warning(str(exc))
-        st.code(
-            ".\\.venv\\Scripts\\python.exe -m cardioscope.dashboard.sandbox", language="powershell"
-        )
-
-    def reset_profile() -> None:
-        # New widget IDs discard values still buffered in the browser form.
-        st.session_state["sandbox_form_revision"] = form_revision + 1
-
-    form_revision = st.session_state.get("sandbox_form_revision", 0)
-    st.button("Reset fictional inputs", on_click=reset_profile)
-    profile_key = f"fiction_{preset}_{form_revision}"
-    left, right = st.columns(2)
-    with left:
-        st.subheader("Fictional input profile")
-        with st.form(f"{profile_key}_form"):
-            values: Record = {}
-            for key, label in {
-                "age": "Age (years)",
-                "trestbps": "Resting blood pressure (mm Hg)",
-                "chol": "Cholesterol (mg/dL)",
-            }.items():
-                low, high = LIMITS[key]
-                values[key] = st.number_input(
-                    label,
-                    min_value=float(low),
-                    max_value=float(high),
-                    value=float(defaults[key]),
-                    step=1.0,
-                    format="%g",
-                    key=f"{profile_key}_{key}",
-                )
-            for key, label in {
-                "sex": "Recorded sex category",
-                "cp": "Chest pain category",
-                "fbs": "Fasting blood sugar >120 mg/dL",
-            }.items():
-                levels = FIELDS[key].levels
-                values[key] = st.selectbox(
-                    label,
-                    levels,
-                    index=levels.index(str(defaults[key])),
-                    key=f"{profile_key}_{key}",
-                )
-            with st.container(key="contrast_submit"):
-                submitted = st.form_submit_button(
-                    "Validate & run fictional profile", disabled=model is None, type="primary"
-                )
-            save = account is not None and st.form_submit_button(
-                "Run & save private report", disabled=model is None
-            )
-        st.caption(
-            "Demo input bounds are interface constraints, not clinical "
-            "reference ranges. This model preserves recorded cholesterol "
-            "zeros."
-        )
-    with right:
-        st.subheader("Experimental output")
-        if (submitted or save) and model is not None:
-            try:
-                if save:
-                    report = store().save_report(
-                        token(), e, example, values, saved_profile.id if saved_profile else None
-                    )
-                    score, threshold = report.score, report.threshold
-                    st.success("Private fictional report saved.")
-                    st.page_link("views/my_reports.py", label="Open My Reports")
-                else:
-                    frame = validate_profile(values)
-                    score = float(model.predict_proba(frame)[0, 1])
-                    threshold = expected_metadata(e)["threshold"]
-                st.metric("Experimental model score", f"{score:.3f}")
-                st.write(
-                    f"Predicted historical dataset class: "
-                    f"**{int(score >= threshold)}** at threshold {threshold:.2f}."
-                )
-                st.caption(
-                    "Experimental model score — not a clinically validated probability of disease."
-                )
-                st.caption("Output corresponds to the submitted profile. Submit again after edits.")
-            except (ValueError, WorkspaceError) as exc:
-                st.error(str(exc))
-        else:
-            st.write("Submit a fictional profile to inspect the pipeline output.")
-        st.write(
-            "Historical target: class 0 corresponds to recorded num = 0; "
-            "class 1 combines num = 1–4. A classification describes the "
-            "model's mapping of these historical labels."
-        )
-        st.write(
-            "The pipeline imputes numeric values, scales them, encodes "
-            "categories and applies its fitted logistic classifier. No "
-            "training occurs here. The pooled model is not the separately "
-            "fitted hospital-transfer models."
-        )
-        st.warning(
-            "Changing population, missing measurements and historical "
-            "collection practices can invalidate interpretation of a score. "
-            "This demonstration offers no diagnosis or treatment "
-            "recommendation."
-        )
+    render(e)
 
 
 def registry(e: Evidence) -> None:

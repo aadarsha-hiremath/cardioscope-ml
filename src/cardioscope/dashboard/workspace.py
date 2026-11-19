@@ -1,4 +1,4 @@
-"""Authentication and owner-scoped storage for fictional educational work."""
+"""Authentication and owner-scoped storage for educational research work."""
 
 from __future__ import annotations
 
@@ -23,9 +23,9 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from .evidence import FAMILIES, Evidence, Record
+from .evidence import FAMILIES, Record
 from .examples import EXAMPLES, REPORT_DISCLAIMER
-from .sandbox import expected_metadata, load_verified, validate_profile
+from .sandbox import Prediction
 from .workspace_schema import (
     WorkspaceError,
     attempts,
@@ -93,16 +93,14 @@ class Profile:
 
 @dataclass(frozen=True)
 class PublicReport:
-    """Fixed projection. The query never selects private or account fields."""
+    """Fixed projection of result and model provenance fields."""
 
-    example: str
     model: str
     feature_tier: str
     version: str
     artifact_digest: str
     score: float
     historical_class: int
-    disclaimer: str
 
 
 @dataclass(frozen=True)
@@ -110,9 +108,11 @@ class SavedReport(PublicReport):
     id: str
     owner_id: str
     title: str
+    example: str
     profile_label: str
     threshold: float
     created_at: int
+    disclaimer: str
     shared: bool
 
 
@@ -134,7 +134,7 @@ def _name(value: str) -> str:
 
 def _example(name: str) -> Record:
     if name not in EXAMPLES:
-        raise WorkspaceError("Select a built-in fictional example.")
+        raise WorkspaceError("That saved profile is unavailable.")
     return EXAMPLES[name].copy()
 
 
@@ -319,7 +319,7 @@ class Workspace:
                     )
                 )
             except IntegrityError as exc:
-                raise WorkspaceError("Choose a distinct name for this fictional profile.") from exc
+                raise WorkspaceError("Choose a distinct profile name.") from exc
         return profile
 
     def delete_profile(self, token: str, profile_id: str) -> None:
@@ -330,65 +330,40 @@ class Workspace:
                 )
             )
 
+    def profile_inputs(self, token: str, profile_id: str) -> Record:
+        with self._authorized(token) as (conn, account):
+            example = conn.scalar(
+                select(profiles.c.example).where(
+                    profiles.c.id == profile_id, profiles.c.owner_id == account.id
+                )
+            )
+            if example is None:
+                raise WorkspaceError("That saved profile is unavailable.")
+            return _example(example)
+
     @staticmethod
     def _owned(owner: str, report_id: str) -> Any:
         return and_(reports.c.owner_id == owner, reports.c.id == report_id)
 
-    def save_report(
-        self,
-        token: str,
-        evidence: Evidence,
-        example: str,
-        entered: Record,
-        profile_id: str | None = None,
-    ) -> SavedReport:
-        original = _example(example)
-        frame = validate_profile(entered)
-        if entered != original:
-            raise WorkspaceError(
-                "Reset to the built-in example before saving. Edited values stay transient."
-            )
-        self.account(token)
-        model = load_verified(evidence)
-        meta = expected_metadata(evidence)
-        score = float(model.predict_proba(frame)[0, 1])
-        threshold = float(meta["threshold"])
-        if not 0 <= score <= 1:
-            raise WorkspaceError("The verified model did not return a valid score.")
+    def save_report(self, token: str, prediction: Prediction, title: str) -> SavedReport:
+        """Persist a verified result from the current session without its input vector."""
         with self._authorized(token) as (conn, account):
-            label = example
-            if profile_id is not None:
-                saved_label = conn.scalar(
-                    select(profiles.c.name).where(
-                        profiles.c.id == profile_id,
-                        profiles.c.owner_id == account.id,
-                        profiles.c.example == example,
-                    )
-                )
-                if saved_label is None:
-                    raise WorkspaceError("The selected fictional profile is unavailable.")
-                label = saved_label
-            saved = SavedReport(
-                id=uuid4().hex,
+            payload = {
+                **asdict(prediction),
+                # Round to the displayed precision while retaining the original class.
+                "score": round(prediction.score, 3),
+            }
+            stmt = self.insert(reports).values(
+                **payload,
                 owner_id=account.id,
-                title=label,
-                profile_label=label,
-                example=example,
-                model=FAMILIES[meta["family"]],
-                feature_tier=meta["tier"],
-                version=meta["versions"]["scikit-learn"],
-                artifact_digest=meta["holdout_probability_sha256"],
-                score=score,
-                historical_class=int(score >= threshold),
-                threshold=threshold,
+                title=_name(title),
+                profile_label="",
+                example="manual",
                 created_at=int(time.time()),
                 disclaimer=REPORT_DISCLAIMER,
-                shared=False,
             )
-            payload = asdict(saved)
-            payload.pop("shared")
-            conn.execute(reports.insert().values(**payload))
-        return saved
+            conn.execute(stmt.on_conflict_do_nothing(index_elements=[reports.c.id]))
+            return self._read_report(conn, account.id, prediction.id)
 
     @staticmethod
     def _report_query() -> Any:
@@ -404,11 +379,14 @@ class Workspace:
 
     def report(self, token: str, report_id: str) -> SavedReport:
         with self._authorized(token) as (conn, account):
-            query = self._report_query().where(self._owned(account.id, report_id))
-            row = conn.execute(query).mappings().one_or_none()
-            if row is None:
-                raise WorkspaceError("That report is unavailable.")
-            return SavedReport(**row)
+            return self._read_report(conn, account.id, report_id)
+
+    def _read_report(self, conn: Connection, owner: str, report_id: str) -> SavedReport:
+        query = self._report_query().where(self._owned(owner, report_id))
+        row = conn.execute(query).mappings().one_or_none()
+        if row is None:
+            raise WorkspaceError("That report is unavailable.")
+        return SavedReport(**row)
 
     def rename_report(self, token: str, report_id: str, title: str) -> None:
         with self._authorized(token) as (conn, account):
@@ -443,9 +421,9 @@ class Workspace:
             else:
                 conn.execute(shares.delete().where(shares.c.report_id.in_(owned)))
 
-    def shared_reports(self) -> list[PublicReport]:
+    def shared_reports(self, token: str) -> list[PublicReport]:
         columns = [reports.c[name] for name in PublicReport.__dataclass_fields__]
-        with self._transaction() as conn:
+        with self._authorized(token) as (conn, _):
             query = (
                 select(*columns)
                 .select_from(reports.join(shares))

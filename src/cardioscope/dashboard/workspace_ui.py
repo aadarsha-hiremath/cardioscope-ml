@@ -1,4 +1,4 @@
-"""Streamlit account sessions, preferences, and fictional report views."""
+"""Streamlit account sessions, preferences, and saved report views."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from .auth import LOGOUT, WELCOME, CookiePolicy, browser_token
 from .evidence import FAMILIES
 from .examples import EXAMPLES, REPORT_DISCLAIMER
 from .registry import RegistryError, database_url
-from .workspace import Account, PublicReport, Settings, Workspace
+from .workspace import Account, PublicReport, SavedReport, Settings, Workspace
 from .workspace_schema import WorkspaceError, open_workspace
 
 if TYPE_CHECKING:
@@ -177,76 +177,81 @@ def _timestamp(value: int) -> str:
 
 def _public_fields(report: PublicReport) -> dict[str, str | int]:
     return {
-        "Built-in example": report.example,
-        "Model": report.model,
-        "Tier": report.feature_tier.capitalize(),
+        "Model family": report.model,
+        "Feature tier": report.feature_tier.capitalize(),
         "scikit-learn": report.version,
         "Phase 3 prediction digest": report.artifact_digest,
-        "Experimental score": f"{report.score:.3f}",
-        "Historical class": report.historical_class,
+        "Experimental model score": f"{report.score:.3f}",
+        "Predicted historical class": report.historical_class,
     }
 
 
+def _report_title(report: SavedReport) -> str:
+    if report.title == report.example == report.profile_label and report.example in EXAMPLES:
+        return "Earlier example report"
+    return report.title
+
+
 def _profile_view(db: Workspace, grant: str) -> None:
-    st.subheader("Saved fictional profiles")
+    st.subheader("Saved Profiles")
     rows = db.profiles(grant)
     if not rows:
-        st.info("You have no saved fictional profiles.")
-    with st.form("personal_profile", clear_on_submit=True):
-        name = st.text_input("Private profile name", max_chars=64)
-        example = st.selectbox("Built-in example to save", list(EXAMPLES), index=None)
-        st.caption("Choose a built-in example. Edited inputs cannot be saved.")
-        if st.form_submit_button("Save fictional profile"):
-            if example is None:
-                st.error("Select a built-in fictional example.")
-            else:
-                db.create_profile(grant, name, example)
-                st.session_state[FLASH] = "Fictional profile saved."
-                st.rerun()
+        st.info("You have no saved profiles.")
     if rows:
-        labels = {p.id: f"{p.name} · {p.example}" for p in rows}
+        st.caption("Previously saved profiles are available to load into a new prediction.")
+        labels = {p.id: p.name for p in rows}
         choice = st.selectbox(
-            "Saved profile to remove", list(labels), index=None, format_func=labels.__getitem__
+            "Profile name", list(labels), index=None, format_func=labels.__getitem__
         )
-        if st.button("Delete saved profile", disabled=choice is None):
+        left, right = st.columns(2)
+        if left.button("Load into Prediction Lab", disabled=choice is None):
+            st.session_state[widget_key("prediction_profile_to_load")] = choice
+            st.switch_page("views/sandbox.py")
+        if right.button("Delete saved profile", disabled=choice is None):
             assert choice is not None
             db.delete_profile(grant, choice)
             st.session_state[FLASH] = (
                 "Saved profile removed. Its existing reports remain in history."
             )
             st.rerun()
-    st.page_link("views/sandbox.py", label="Open Prediction Sandbox")
+    st.page_link("views/sandbox.py", label="Open Prediction Lab")
 
 
 def _history_view(db: Workspace, grant: str) -> None:
-    st.subheader("Private report history")
+    st.subheader("Report History")
     rows = db.history(grant)
     if not rows:
-        st.info("You have no saved educational reports.")
+        st.info("You have no saved reports.")
         return
-    st.caption(f"{len(rows)} saved reports")
-    titles = {r.id: f"{r.title} · {_timestamp(r.created_at)} · {r.id[:8]}" for r in rows}
+    st.caption(f"{len(rows)} saved {'report' if len(rows) == 1 else 'reports'}")
+    titles = {r.id: f"{_report_title(r)} · {_timestamp(r.created_at)} · {r.id[:8]}" for r in rows}
     chosen = st.selectbox(
         "Open saved report", list(titles), index=None, format_func=titles.__getitem__
     )
     if chosen:
         report = db.report(grant, chosen)
         with st.container(border=True):
-            st.text(report.title)
-            st.text(f"Saved fictional profile: {report.profile_label}")
+            st.text(_report_title(report))
+            if report.profile_label and report.profile_label not in EXAMPLES:
+                st.text(f"Saved profile: {report.profile_label}")
             st.caption(f"Created {_timestamp(report.created_at)}")
             st.table(pd.DataFrame([_public_fields(report)]).T.rename(columns={0: "Result"}))
             st.caption(f"Historical class threshold {report.threshold:.2f}")
-            st.info(report.disclaimer)
+            st.info(REPORT_DISCLAIMER)
             with st.form(f"personal_rename_{chosen}"):
-                new_title = st.text_input("Private report title", value=report.title, max_chars=64)
+                new_title = st.text_input(
+                    "Report title",
+                    value=_report_title(report),
+                    max_chars=64,
+                    help="Use a non-identifying title without patient information.",
+                )
                 if st.form_submit_button("Rename report"):
                     db.rename_report(grant, chosen, new_title)
                     st.session_state[FLASH] = "Report renamed."
                     st.rerun()
             with st.expander("Sharing and report deletion", expanded=report.shared):
                 st.write(
-                    "Shared reports can be seen by anyone who can open this dashboard. "
+                    "Other signed-in users can view the shared summary. "
                     "Only the result fields shown in the sharing preview will appear."
                 )
                 st.caption("Sharing preview")
@@ -262,16 +267,16 @@ def _history_view(db: Workspace, grant: str) -> None:
                         st.rerun()
                 else:
                     confirm_share = st.checkbox(
-                        "I want to share this fictional result",
+                        "I approve sharing this summary",
                         key=f"personal_share_confirm_{chosen}",
                     )
                     if st.button(
-                        "Share fictional report",
+                        "Share Report",
                         disabled=not confirm_share,
                         key=f"personal_share_{chosen}",
                     ):
                         db.set_sharing(grant, chosen, shared=True)
-                        st.session_state[FLASH] = "Fictional report shared."
+                        st.session_state[FLASH] = "Report shared."
                         st.rerun()
                 delete = st.checkbox(
                     "Confirm deletion of this report", key=f"personal_delete_{chosen}"
@@ -291,7 +296,7 @@ def _history_view(db: Workspace, grant: str) -> None:
 
 def reports_page() -> None:
     st.title("My Reports")
-    st.caption("Your saved fictional profiles and educational reports.")
+    st.caption("Manage your saved profiles and private prediction reports.")
     if _sign_in_required():
         return
     _notice()
@@ -305,16 +310,16 @@ def reports_page() -> None:
 
 
 def shared_page() -> None:
-    st.title("Shared Fictional Reports")
+    st.title("Shared Reports")
     st.info(REPORT_DISCLAIMER)
     st.caption("Only reports explicitly shared by their owners appear here.")
     try:
-        reports = store().shared_reports()
+        reports = store().shared_reports(token())
     except WorkspaceError as exc:
         st.error(str(exc))
         return
     if not reports:
-        st.info("No fictional reports have been shared yet.")
+        st.info("No reports have been shared yet.")
         return
     st.dataframe(
         pd.DataFrame([_public_fields(r) for r in reports]), hide_index=True, width="stretch"

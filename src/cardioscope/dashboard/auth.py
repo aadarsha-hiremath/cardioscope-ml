@@ -336,7 +336,7 @@ def _welcome(
 <main>
 <div class="brand">CardioScope ML · Research Workspace</div>
 <h1>{heading}</h1>
-<p>Explore verified research and manage your saved fictional reports.</p>
+<p>Explore verified research and manage your saved prediction reports.</p>
 {f'<p class="error" role="alert">{escape(error)}</p>' if error else ""}
 <form method="post" action="{action}">
 <label>Username<input name="username" autocomplete="username" maxlength="32" required></label>

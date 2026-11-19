@@ -8,17 +8,29 @@ import io
 import json
 import math
 import pickle
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
+import numpy as np
 import pandas as pd
 
-from cardioscope.dashboard.evidence import ROOT, Evidence, EvidenceError, load_evidence
+from cardioscope.dashboard.evidence import FAMILIES, ROOT, Evidence, EvidenceError, load_evidence
 from cardioscope.data.schema import FIELDS
+from cardioscope.preprocessing import EARLY
 
 MODEL_DIR = ROOT / "models"
 LIMITS = {"age": (18, 100), "trestbps": (50, 250), "chol": (0, 700)}
+INPUT_LABELS = {
+    "age": "Age (years)",
+    "trestbps": "Resting blood pressure (mm Hg)",
+    "chol": "Serum cholesterol (mg/dL)",
+    "sex": "Recorded sex category",
+    "cp": "Chest pain category",
+    "fbs": "Fasting blood sugar above 120 mg/dL",
+}
 PROFILE = {
     "age": 48.0,
     "trestbps": 120.0,
@@ -30,16 +42,62 @@ PROFILE = {
 
 
 def validate_profile(values: dict[str, Any]) -> pd.DataFrame:
-    if set(values) != set(PROFILE):
-        raise ValueError("The early model requires exactly six feature values.")
+    if set(values) != set(EARLY):
+        raise ValueError("Provide the six supported measurement fields.")
+    if all(value is None for value in values.values()):
+        raise ValueError("Enter at least one example measurement before running a prediction.")
     for key, (low, high) in LIMITS.items():
         v = values[key]
-        if type(v) not in (int, float) or not math.isfinite(v) or not low <= v <= high:
-            raise ValueError(f"{key} must be between {low} and {high}.")
+        if v is not None and (type(v) not in (int, float) or not low <= v <= high or v != int(v)):
+            raise ValueError(f"{INPUT_LABELS[key]} must be a whole number from {low} to {high}.")
     for key in ("sex", "cp", "fbs"):
-        if values[key] not in FIELDS[key].levels:
-            raise ValueError(f"Unsupported category for {key}.")
-    return pd.DataFrame([values]).loc[:, ["age", "sex", "cp", "trestbps", "chol", "fbs"]]
+        if values[key] is not None and (
+            type(values[key]) is not str or values[key] not in FIELDS[key].levels
+        ):
+            raise ValueError(f"Choose a supported option for {INPUT_LABELS[key]}.")
+    # Match the representations used by the frozen numeric and categorical imputers.
+    encoded = {}
+    for key in EARLY:
+        value = values[key]
+        encoded[key] = pd.Series(
+            [np.nan if value is None else value],
+            dtype="float64" if key in LIMITS else "object",
+        )
+    return pd.DataFrame(encoded)
+
+
+@dataclass(frozen=True)
+class Prediction:
+    id: str
+    model: str
+    feature_tier: str
+    version: str
+    artifact_digest: str
+    score: float
+    historical_class: int
+    threshold: float
+
+
+def predict(e: Evidence, model: Any, values: dict[str, Any]) -> Prediction:
+    frame = validate_profile(values)
+    metadata = expected_metadata(e)
+    threshold = float(metadata["threshold"])
+    try:
+        score = float(model.predict_proba(frame)[0, 1])
+    except (ValueError, TypeError, IndexError) as exc:
+        raise ValueError("The verified model could not score these measurements.") from exc
+    if not math.isfinite(score) or not 0 <= score <= 1:
+        raise ValueError("The verified model did not return a valid score.")
+    return Prediction(
+        id=uuid4().hex,
+        model=FAMILIES[metadata["family"]],
+        feature_tier=metadata["tier"],
+        version=metadata["versions"]["scikit-learn"],
+        artifact_digest=metadata["holdout_probability_sha256"],
+        score=score,
+        historical_class=int(score >= threshold),
+        threshold=threshold,
+    )
 
 
 def expected_metadata(e: Evidence) -> dict[str, Any]:
@@ -58,7 +116,7 @@ def expected_metadata(e: Evidence) -> dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def _deserialize_verified(raw: bytes) -> Any:
-    """Cache only model bytes, never fictional inputs or prediction outputs."""
+    """Cache only model bytes, never input values or prediction outputs."""
     import joblib
 
     return joblib.load(io.BytesIO(raw))
@@ -97,7 +155,7 @@ def load_verified(e: Evidence, directory: Path = MODEL_DIR) -> Any:
     ) as exc:
         raise EvidenceError(
             "Verified local demonstration model unavailable. Run the explicit "
-            "sandbox build command from the README."
+            "model build command from the README."
         ) from exc
 
 
@@ -136,4 +194,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args()
     build()
-    print("Local sandbox pipeline verified against the Phase 3 prediction digest.")
+    print("Local Prediction Lab pipeline verified against the Phase 3 prediction digest.")

@@ -192,9 +192,18 @@ def test_early_feature_contract_and_missing_artifact(tmp_path, evidence):
 
 
 def test_local_model_build_and_inference_reproducibility(tmp_path, evidence, caplog):
-    if not (ROOT / "data/raw/heart_disease_uci.csv").exists():
-        pytest.skip("Verified source CSV is local-only; install it to exercise explicit refit")
-    sandbox.build(tmp_path)
+    if not (ROOT / "data/raw/heart_disease_uci.csv").exists() or not all(
+        (sandbox.MODEL_DIR / name).exists() for name in ("sandbox.joblib", "sandbox.json")
+    ):
+        pytest.skip("Build verification uses the local CSV and verified fitted model")
+    fitted = sandbox.load_verified(evidence)
+    # Verify the build and digest gate with the frozen fitted estimator.
+    with (
+        patch("cardioscope.training.make_model", return_value=fitted),
+        patch("sklearn.pipeline.Pipeline.fit", autospec=True) as fit,
+    ):
+        sandbox.build(tmp_path)
+    fit.assert_called_once()
     with patch("sklearn.pipeline.Pipeline.fit", side_effect=AssertionError("UI must never fit")):
         model = sandbox.load_verified(evidence, tmp_path)
         x = sandbox.validate_profile(sandbox.PROFILE)
@@ -220,6 +229,17 @@ def app_page(page):
 def personal_box(app, key):
     account = app.session_state["_workspace_account"]
     return app.selectbox(key=f"personal_{account.id}_{key}")
+
+
+def click(app, label):
+    next(button for button in app.button if button.label == label).click().run()
+
+
+def enter_measurements(app, values):
+    for field, widget in zip(sandbox.LIMITS, app.number_input, strict=True):
+        widget.set_value(values[field])
+    for field, widget in zip(("sex", "cp", "fbs"), app.selectbox, strict=True):
+        widget.select(values[field])
 
 
 @pytest.mark.parametrize("page", PAGES)
@@ -284,8 +304,8 @@ def test_error_pages_and_disabled_sandbox(monkeypatch):
         side_effect=EvidenceError("model unavailable"),
     ):
         app = app_page("sandbox")
-        personal_box(app, "sandbox_preset").select("Fictional A").run()
-        assert app.button[-1].disabled
+        app.checkbox[0].check().run()
+        assert next(b for b in app.button if b.label == "Run Prediction").disabled
     monkeypatch.setenv("CARDIOSCOPE_DATABASE_URL", "unsupported://secret")
     app = app_page("registry")
     assert app.error
@@ -358,16 +378,26 @@ def test_sandbox_state_and_no_persistence(tmp_path, monkeypatch, caplog):
         ),
     ):
         app = app_page("sandbox")
-        assert not app.number_input and not app.metric
-        personal_box(app, "sandbox_preset").select("Fictional A").run()
-        app.button[-2].click().run()
-        assert app.metric[0].value == "0.300"
-        personal_box(app, "sandbox_preset").select("Fictional B").run()
+        assert all(field.value is None for field in [*app.number_input, *app.selectbox])
         assert not app.metric
-        assert app.number_input[0].value == 64.0
-        app.number_input[0].set_value(70.0)
-        app.button[0].click().run()
-        assert app.number_input[0].value == 64.0
+        app.checkbox[0].check().run()
+        click(app, "Run Prediction")
+        assert "Enter at least one" in app.error[0].value
+        enter_measurements(app, sandbox.PROFILE)
+        click(app, "Run Prediction")
+        assert app.metric[0].value == "0.300"
+        assert any(button.label == "Save Report" for button in app.button)
+        app.number_input[0].set_value(70).run()
+        assert not app.metric
+        assert all(button.label != "Save Report" for button in app.button)
+        click(app, "Run Prediction")
+        assert app.metric
+        app.switch_page("views/overview.py").run()
+        app.switch_page("views/sandbox.py").run()
+        assert not app.metric
+        click(app, "New Prediction")
+        assert all(field.value is None for field in [*app.number_input, *app.selectbox])
+        assert not app.checkbox[0].value
         assert not app.exception
     assert not (tmp_path / "never-created.db").exists()
     assert not [r for r in caplog.records if r.name.startswith("cardioscope")]
@@ -486,7 +516,7 @@ def test_registry_partial_and_corrupted_records(tmp_path, monkeypatch, evidence)
     engine.dispose()
 
 
-def test_existing_pipeline_replays_holdout_and_fictional_ui(evidence, tmp_path, monkeypatch):
+def test_existing_pipeline_replays_holdout_and_manual_ui(evidence, tmp_path, monkeypatch):
     from threadpoolctl import threadpool_limits
 
     from cardioscope.data.loading import load_dataset
@@ -519,24 +549,23 @@ def test_existing_pipeline_replays_holdout_and_fictional_ui(evidence, tmp_path, 
         )
         monkeypatch.setenv("CARDIOSCOPE_DATABASE_URL", f"sqlite:///{tmp_path / 'never.db'}")
         app = app_page("sandbox")
-        personal_box(app, "sandbox_preset").select("Fictional A").run()
-        assert [field.value for field in app.number_input] == [48, 120, 210]
-        app.button[-2].click().run()
+        app.checkbox[0].check().run()
+        enter_measurements(app, sandbox.PROFILE)
+        click(app, "Run Prediction")
         assert app.metric[0].value == "0.050"
-        personal_box(app, "sandbox_preset").select("Fictional B").run()
+        app.number_input[0].set_value(64).run()
         assert not app.metric
-        assert [field.value for field in app.number_input] == [64, 145, 280]
-        app.button[-2].click().run()
+        click(app, "Run Prediction")
         assert app.metric[0].value != "0.050"
-        app.number_input[0].set_value(70)
-        app.button[0].click().run()
+        app.number_input[1].set_value(None).run()
         assert not app.metric
-        assert app.number_input[0].value == 64
+        click(app, "Run Prediction")
+        assert 0 <= float(app.metric[0].value) <= 1
         with (
             patch.object(sandbox, "load_verified", return_value=model),
             patch.object(sandbox, "validate_profile", side_effect=ValueError("Invalid age")),
         ):
-            app.button[-2].click().run()
+            click(app, "Run Prediction")
         assert app.error[0].value == "Invalid age"
         assert not app.metric
         assert not app.exception

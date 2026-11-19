@@ -15,6 +15,8 @@ py -3.12 -m venv .venv
 
 Open `http://127.0.0.1:8501`. The server binds to loopback. Analytics collection is disabled. The eight research pages work from tracked aggregate reports; a raw CSV, GPU and PostgreSQL server are not required. With file watching disabled, restart the server after editing application code.
 
+Phase 6.1 also adds Account, Settings, My Reports, and Shared Fictional Reports. These pages use persistent account-owned storage alongside the separate research catalog. [Workspace guide](workspaces.md)
+
 ## Pages
 
 | Page | Evidence and interactions |
@@ -34,7 +36,7 @@ BA is the mean of sensitivity and specificity. AP is average precision, not a th
 
 ```text
 app/streamlit_app.py               native st.Page/st.navigation entrypoint
-app/views/*.py                     eight small page entrypoints
+app/views/*.py                     research and personal workspace entrypoints
 app/assets/wordmark.svg            local vector wordmark
 src/cardioscope/dashboard/
   pages.py                        reusable native layouts and views
@@ -65,7 +67,7 @@ This uses existing Phase 2â€“3 preparation, grouped split and model-constru
 
 Loading checks dataset and selection fingerprints, family/tier, hyperparameters, threshold, prediction digest, library compatibility, model-byte checksum, input columns and class ordering. Missing, corrupt or incompatible files disable submission. Joblib is a trusted-local serialization boundary: a checksum does **not** make an attacker-controlled pickle safe. Never replace both local files with downloaded models. There is no upload endpoint or user-selectable model path.
 
-The form accepts six early features and intentionally synthetic examples. Bounds are demonstration constraints, not medical reference ranges. Cholesterol zero remains as recorded, matching the selected model. Inputs travel only to the loopback server and remain transient widget/session data; they are not persisted, logged, exported or sent to remote services. Output describes a historical dataset class and an experimental score, not disease risk or medical advice. Editing a submitted form requires resubmission; the output explicitly identifies this. Changing examples clears the output; reset restores that example's defaults.
+The form accepts six early features and intentionally synthetic examples. Bounds are demonstration constraints rather than clinical reference ranges. Cholesterol zero remains as recorded, matching the selected model. Inputs travel only to the loopback server. Ordinary inference and edited inputs remain transient. A signed-in user can explicitly save an unedited built-in example's result in the personal workspace. No feature vector is stored. Output describes a historical dataset class and an experimental score. Changing examples clears the output, and reset restores that example's defaults. [Persistence and sharing rules](workspaces.md)
 
 ## Aggregate experiment tracking
 

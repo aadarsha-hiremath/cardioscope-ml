@@ -34,7 +34,9 @@ Open [the local dashboard](http://127.0.0.1:8501). Aggregate research pages work
 .\.venv\Scripts\python.exe -m cardioscope.dashboard.sandbox
 ```
 
-This command requires the exact local CSV and locked environment. No serialized model or raw dataset is committed. The sandbox's experimental score is **not a clinically validated probability of disease**, and fictional inputs and outputs are not stored or logged. The registry imports six pooled and 96 hospital result summaries into local SQLite; PostgreSQL is optional. Import times are labeled as import times, not invented experiment history.
+This command requires the exact local CSV and locked environment. No serialized model or raw dataset is committed. The sandbox's experimental score is **not a clinically validated probability of disease**. Ordinary inference stays transient. Signed-in users may explicitly save a private report for an unedited built-in example.
+
+Open **Account** to register and sign in. **Settings** saves chart and research defaults. **My Reports** holds your named fictional examples and private report history. **Shared Fictional Reports** shows only the result fields owners explicitly share. The original 102 research experiments stay in the separate, verified catalog. [Workspace setup, privacy, and backups](docs/workspaces.md)
 
 ![Running research overview](artifacts/phase5/overview-desktop.png)
 
@@ -149,6 +151,6 @@ Phase 4 estimates transfer among these four historical sources. Earlier pooled d
 
 ## Code license and redistribution
 
-The owner has not selected a license for the project code. UCI lists CC BY 4.0 for its original dataset. Redistribution rights for the exact Kaggle combined CSV remain unconfirmed. Obtain the data from its source. The repository excludes the raw dataset, source archives, fitted models and local registry. [Dataset provenance and credits](docs/provenance.md)
+The project’s original code and documentation are licensed under [MIT](LICENSE), copyright 2026 aadarsha-hiremath. Third-party software, assets, and datasets retain their own terms. UCI lists CC BY 4.0 for its original dataset. Redistribution rights for the exact Kaggle combined CSV remain unconfirmed. Obtain the data from its source. The repository excludes raw data, source archives, fitted models, and local databases. [Dataset provenance and credits](docs/provenance.md)
 
 **Original data citation.** Janosi, A., Steinbrunn, W., Pfisterer, M., & Detrano, R. (1989). *Heart Disease* [Dataset]. UCI Machine Learning Repository. [DOI 10.24432/C52P4X](https://doi.org/10.24432/C52P4X)

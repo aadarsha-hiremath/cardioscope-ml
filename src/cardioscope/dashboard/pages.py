@@ -20,6 +20,7 @@ from .evidence import (
     load_evidence,
     site_run,
 )
+from .workspace_ui import account_settings, widget_key
 
 DISCLAIMER = (
     "Educational machine learning research. Not a clinically "
@@ -51,6 +52,9 @@ def cards(values: dict[str, Any]) -> None:
 
 
 def plot(figure: Any, alt: str) -> None:
+    if not account_settings().show_grid:
+        figure.update_xaxes(showgrid=False)
+        figure.update_yaxes(showgrid=False)
     st.plotly_chart(
         figure, alt=alt, width="stretch", config={"displaylogo": False, "responsive": True}
     )
@@ -66,11 +70,21 @@ def confusion_plot(metrics: Record) -> None:
 
 def selectors(page: str) -> tuple[str, str]:
     left, right = st.columns(2)
+    current = account_settings()
+    families = list(FAMILIES)
     family = left.selectbox(
-        "Model family", list(FAMILIES), format_func=FAMILIES.__getitem__, key=f"{page}_model"
+        "Model family",
+        families,
+        index=families.index(current.model),
+        format_func=FAMILIES.__getitem__,
+        key=widget_key(f"{page}_model"),
     )
     tier = right.selectbox(
-        "Feature tier", ["early", "extended"], format_func=str.capitalize, key=f"{page}_tier"
+        "Feature tier",
+        ["early", "extended"],
+        index=int(current.tier == "extended"),
+        format_func=str.capitalize,
+        key=widget_key(f"{page}_tier"),
     )
     return family, tier
 
@@ -89,8 +103,12 @@ def metrics_table(metrics: Record) -> None:
 
 
 def hospital_select(e: Evidence, key: str) -> Record:
+    names = [s["hospital"] for s in e.transfer["sites"]]
     hospital = st.selectbox(
-        "Held-out hospital", [s["hospital"] for s in e.transfer["sites"]], key=key
+        "Held-out hospital",
+        names,
+        index=names.index(account_settings().hospital),
+        key=widget_key(key),
     )
     return next(s for s in e.transfer["sites"] if s["hospital"] == hospital)
 
@@ -439,7 +457,7 @@ def laboratory(e: Evidence) -> None:
             "later-information question. Pooled results do not establish "
             "transfer reliability."
         )
-    with st.expander("Advanced configuration"):
+    with st.expander("Advanced configuration", expanded=account_settings().advanced_config):
         metadata = e.cv["selection"]["metadata"]
         st.json(
             {
@@ -636,7 +654,10 @@ def calibration(e: Evidence) -> None:
 def sandbox(e: Evidence) -> None:
     from cardioscope.data.schema import FIELDS
 
-    from .sandbox import LIMITS, PROFILE, expected_metadata, load_verified, validate_profile
+    from .examples import EXAMPLES
+    from .sandbox import LIMITS, expected_metadata, load_verified, validate_profile
+    from .workspace_schema import WorkspaceError
+    from .workspace_ui import active_account, store, token
 
     header(
         "Educational Prediction Sandbox",
@@ -644,10 +665,36 @@ def sandbox(e: Evidence) -> None:
     )
     st.info(DISCLAIMER)
     st.caption(
-        "Use synthetic values only. Inputs and outputs are held "
-        "transiently in this local session; they are never written to the "
-        "registry, files, logs or remote services."
+        "Use synthetic values only. Ordinary runs are transient. An account can explicitly "
+        "save reports for built-in, unedited fictional examples."
     )
+    account = active_account()
+    saved_examples = {}
+    if account is not None:
+        try:
+            saved_examples = {p.id: p for p in store().profiles(token())}
+        except WorkspaceError as exc:
+            st.error(str(exc))
+            return
+        st.page_link("views/my_reports.py", label="Manage fictional profiles and reports")
+
+    options = [*EXAMPLES, *saved_examples]
+    preset = st.selectbox(
+        "Synthetic example",
+        options,
+        index=0 if account is None else None,
+        format_func=lambda key: f"{saved_examples[key].name} · {saved_examples[key].example}"
+        if key in saved_examples
+        else key,
+        key=widget_key("sandbox_preset"),
+    )
+    if preset is None:
+        st.info("Choose a built-in example or one of your saved fictional profiles to begin.")
+        return
+    saved_profile = saved_examples.get(preset)
+    example = saved_profile.example if saved_profile else preset
+    defaults = EXAMPLES[example]
+
     model = None
     try:
         model = load_verified(e)
@@ -656,25 +703,6 @@ def sandbox(e: Evidence) -> None:
         st.code(
             ".\\.venv\\Scripts\\python.exe -m cardioscope.dashboard.sandbox", language="powershell"
         )
-    examples: dict[str, Record] = {
-        "Fictional A": PROFILE,
-        "Fictional B": {
-            **PROFILE,
-            "age": 64.0,
-            "sex": "Male",
-            "cp": "asymptomatic",
-            "trestbps": 145.0,
-            "chol": 280.0,
-            "fbs": "TRUE",
-        },
-        "Fictional C · zero cholesterol": {
-            **PROFILE,
-            "age": 37.0,
-            "chol": 0.0,
-            "cp": "non-anginal",
-        },
-    }
-    preset = st.selectbox("Synthetic example", list(examples), key="sandbox_preset")
 
     def reset_profile() -> None:
         # New widget IDs discard values still buffered in the browser form.
@@ -698,7 +726,7 @@ def sandbox(e: Evidence) -> None:
                     label,
                     min_value=float(low),
                     max_value=float(high),
-                    value=float(examples[preset][key]),
+                    value=float(defaults[key]),
                     step=1.0,
                     format="%g",
                     key=f"{profile_key}_{key}",
@@ -712,13 +740,16 @@ def sandbox(e: Evidence) -> None:
                 values[key] = st.selectbox(
                     label,
                     levels,
-                    index=levels.index(str(examples[preset][key])),
+                    index=levels.index(str(defaults[key])),
                     key=f"{profile_key}_{key}",
                 )
             with st.container(key="contrast_submit"):
                 submitted = st.form_submit_button(
                     "Validate & run fictional profile", disabled=model is None, type="primary"
                 )
+            save = account is not None and st.form_submit_button(
+                "Run & save private report", disabled=model is None
+            )
         st.caption(
             "Demo input bounds are interface constraints, not clinical "
             "reference ranges. This model preserves recorded cholesterol "
@@ -726,11 +757,19 @@ def sandbox(e: Evidence) -> None:
         )
     with right:
         st.subheader("Experimental output")
-        if submitted and model is not None:
+        if (submitted or save) and model is not None:
             try:
-                frame = validate_profile(values)
-                score = float(model.predict_proba(frame)[0, 1])
-                threshold = expected_metadata(e)["threshold"]
+                if save:
+                    report = store().save_report(
+                        token(), e, example, values, saved_profile.id if saved_profile else None
+                    )
+                    score, threshold = report.score, report.threshold
+                    st.success("Private fictional report saved.")
+                    st.page_link("views/my_reports.py", label="Open My Reports")
+                else:
+                    frame = validate_profile(values)
+                    score = float(model.predict_proba(frame)[0, 1])
+                    threshold = expected_metadata(e)["threshold"]
                 st.metric("Experimental model score", f"{score:.3f}")
                 st.write(
                     f"Predicted historical dataset class: "
@@ -740,7 +779,7 @@ def sandbox(e: Evidence) -> None:
                     "Experimental model score — not a clinically validated probability of disease."
                 )
                 st.caption("Output corresponds to the submitted profile. Submit again after edits.")
-            except ValueError as exc:
+            except (ValueError, WorkspaceError) as exc:
                 st.error(str(exc))
         else:
             st.write("Submit a fictional profile to inspect the pipeline output.")

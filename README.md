@@ -1,8 +1,34 @@
-# CardioScope ML — Heart Disease Classification & Model Reliability Lab
+# CardioScope ML
+
+CardioScope ML is a reproducible research project on heart-disease classification and how model reliability changes across four historical hospital datasets.
 
 > Educational machine learning research prototype. Not a medical device, diagnostic system, or clinically validated risk assessment tool.
 
-**Research question.** How well do heart disease classification models generalize across different hospital populations, and how reliable are their predicted probabilities?
+**Stack** · Python · scikit-learn · XGBoost · Streamlit · Plotly · SQLAlchemy · SQLite
+
+- Compare Logistic Regression, Random Forest, and XGBoost with duplicate-grouped splits and preprocessing fitted within each training fold.
+- Measure cross-hospital performance and probability calibration. Test how treating recorded zero cholesterol as missing changes the results.
+- Trace dashboard metrics to frozen protocols, aggregate reports, and reproducible commands.
+
+[Run locally](#run-locally-on-windows) · [Verified results](#selected-verified-results) · [Reproduce the research](#reproduce-the-audit-on-windows) · [Security and privacy](#security-and-privacy)
+
+## Dashboard preview
+
+### Research Overview
+
+![Research Overview in the current CardioScope ML dashboard, showing sidebar navigation, cohort statistics, and balanced accuracy with confidence intervals across hospitals](docs/screenshots/research-overview.png)
+
+### Prediction Lab
+
+![Prediction Lab showing manually entered example measurements, the Run Prediction action, the experimental model score and historical class, and the nonclinical warning](docs/screenshots/prediction-lab.png)
+
+## What the dashboard includes
+
+- Inspect dataset coverage, model comparisons, hospital reliability, calibration and sensitivity, and research provenance across eight interactive pages.
+- Enter invented measurements in **Prediction Lab** and run the verified early Logistic Regression pipeline. The result shows an experimental score, historical class, model provenance, and a transient input summary.
+- Register a local account and save view settings or output-only reports. Reports start private. **Shared Reports** displays only summaries explicitly approved by their owners and supports revocation.
+
+## Selected verified results
 
 **Phase 4 found that both the error pattern and probability reliability changed across hospitals.** In a retrospective transfer stress test, early Logistic Regression had balanced accuracy of 0.776 in Cleveland and 0.607 at VA Long Beach. It missed 61 of 106 positives in Hungary. In Switzerland it assigned an average probability of 0.710 against 0.935 observed prevalence. All four hospitals had informed earlier pooled development. [Research findings](reports/phase4/reliability-findings.md) · [Four hospital result tables](reports/phase4/hospital-comparison.md) · [Calibration](reports/phase4/calibration-analysis.md) · [Cholesterol sensitivity](reports/phase4/cholesterol-sensitivity.md)
 
@@ -16,35 +42,30 @@
 
 CV AP averages five development-fold scores. Holdout AP summarizes one shared set of 185 records. The extended tier includes diagnostic workup and addresses a later information setting. [Dataset audit](reports/dataset-audit.md) · [Feature availability](docs/evaluation.md)
 
-## Explore the research dashboard
+## Run locally on Windows
 
-The dashboard includes Research Overview, Dataset Explorer, Model Laboratory, Hospital Reliability, Calibration & Sensitivity, Prediction Lab, Experiment Registry, and Methodology & Reproducibility. The navy/slate workspace uses interactive Plotly charts. Displayed evidence is checked against frozen report fingerprints. The dashboard runs on CPU and does not retrain during navigation.
-
-From the repository root in PowerShell (create `.venv` with `py -3.12 -m venv .venv` if needed):
+Use Python 3.12 for the locked environment. The Windows installation was verified with Python 3.12.14. From the repository root, run these commands in PowerShell:
 
 ```powershell
+py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade "pip==26.3"
 .\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dev,dashboard]"
 .\.venv\Scripts\python.exe -m streamlit run app/serve.py
 ```
 
-Open [the local dashboard](http://127.0.0.1:8501). Aggregate research pages work without the raw CSV. Prediction Lab requires a locally verified model. This explicit build command checks that the model reproduces the recorded Phase 3 holdout prediction digest:
+If the Windows launcher cannot find Python 3.12, use the path to your Python 3.12 executable in place of `py -3.12` on the first line.
+
+Open the loopback dashboard and create an account or sign in. Registration opens Research Overview with an empty personal workspace and default settings. The app initializes workspace tables in the ignored SQLite database at `data/local/experiments.db`. In **Experiment Registry**, select **Import verified research records** to load the 102 aggregate experiments. [Open the local dashboard](http://127.0.0.1:8501) · [Database and workspace guide](docs/workspaces.md)
+
+The GitHub repository provides source code and verified aggregate reports. Running the commands above starts a local Streamlit service. The aggregate pages work with the tracked reports and require neither the raw CSV nor a model file. Prediction Lab requires the locally verified model. Build it explicitly from the exact source CSV in the locked environment. The build checks the recorded Phase 3 holdout prediction digest.
 
 ```powershell
 .\.venv\Scripts\python.exe -m cardioscope.dashboard.sandbox
 ```
 
-This command requires the exact local CSV and locked environment. No serialized model or raw dataset is committed. Choose **Start Prediction** on Research Overview to enter invented example measurements in Prediction Lab. Do not enter real patient data. The result shows the experimental score, historical dataset class, model provenance, and the inputs used for that run. **Save Report** stores the output and provenance under a private title. Measurements remain transient.
+Select **Start Prediction** on Research Overview to open the lab. **Run Prediction** uses the fitted CPU pipeline without refitting. **Save Report** stores the result and provenance under a private title. The measurements stay in the active session. [Dashboard architecture and model verification](docs/dashboard.md)
 
-Sign in or create an account on the Welcome page to open Research Overview. **Keep me signed in on this device** is selected by default and lasts up to 30 days. Clear it on shared devices and use **Logout** in the sidebar to end the session. **Settings** saves chart and research defaults. **My Reports** holds private reports and any previously saved profiles. **Shared Reports** displays only result summaries that owners explicitly approved. The 102 research experiments remain in the verified catalog. [Workspace setup, privacy, and backups](docs/workspaces.md)
-
-![Running research overview](artifacts/phase5/overview-desktop.png)
-
-[Architecture, installation, database and artifact strategy](docs/dashboard.md) · [Actual browser screenshots and review](docs/dashboard-visual-review.md) · [Proposed Phase 6 checklist](docs/dashboard.md#proposed-phase-6-checklist--not-started)
-
-[Phase 5.1 UI corrections and acceptance](docs/dashboard-phase-5-1.md)
-
-[Phase 6 release audit and verification](docs/release-audit.md)
+Earlier screenshots and interface checks remain available as development records. [Phase 5 visual review](docs/dashboard-visual-review.md) · [Phase 5.1 acceptance](docs/dashboard-phase-5-1.md) · [Phase 6 release audit](docs/release-audit.md)
 
 ## Why compare hospitals?
 
@@ -126,7 +147,7 @@ The reference run and a fresh replay both produced scientific SHA-256 `c5ceaaf55
 .\.venv\Scripts\python.exe -m pip check
 ```
 
-The source CSV is required to reproduce the research reports and rebuild the optional sandbox model. The refit and fitted-artifact replay tests skip when their local inputs are absent. The rest of the suite uses the tracked aggregate reports and synthetic fixtures.
+The source CSV is required to reproduce the research reports and rebuild the optional Prediction Lab model. The build-verification and fitted-artifact replay tests skip when their local inputs are absent. The rest of the suite uses the tracked aggregate reports and synthetic fixtures.
 
 ## Architecture and field roles
 
@@ -142,6 +163,12 @@ The source CSV is required to reproduce the research reports and rebuild the opt
 | `tests/`, `reports/`, `docs/` | Synthetic regression tests, real-data audit evidence and research design |
 
 `id` identifies a record. `dataset` identifies its hospital for grouped evaluation. The original target `num` ranges from 0 to 4. The derived binary outcome is 0 for no disease recorded and 1 for disease recorded (original classes 1–4). Both targets, the identifier and hospital metadata are excluded from the 13 candidate predictors. Predictor eligibility still depends on when a measurement would be available.
+
+## Security and privacy
+
+The dashboard binds to loopback by default. Local accounts isolate settings and saved reports. **Keep me signed in on this device** is selected by default and expires after 30 days. Clear it on shared devices and use **Logout** in the sidebar to revoke the session. Report sharing requires explicit approval and exposes only the previewed result summary.
+
+Use invented measurements and non-identifying report titles. Private titles persist in SQLite and its backups. Keep local databases, credentials, raw data, and fitted models outside Git. Internet hosting, live PostgreSQL, and workflows involving patient data require separate review. [Authentication, data handling, and backups](docs/workspaces.md)
 
 ## Limitations and planned experiments
 

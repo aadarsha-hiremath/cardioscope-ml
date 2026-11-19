@@ -1,6 +1,6 @@
 # Personal workspaces and authentication
 
-The default workflow is a trusted, loopback-only Streamlit instance. Follow the [README setup](../README.md#explore-the-research-dashboard) with the dashboard extra and launch `app/serve.py`. All dashboard pages require a valid account session. The verified research files remain independently available in the repository. SQLite works locally without a database service. Accounts use the same database configuration as the experiment registry. The original 102 verified aggregate experiments stay in the `experiments` table and appear only in the research catalog.
+The default workflow is a trusted, loopback-only Streamlit instance. Follow the [README setup](../README.md#run-locally-on-windows) with the dashboard extra and launch `app/serve.py`. All dashboard pages require a valid account session. The verified research files remain independently available in the repository. SQLite works locally without a database service. Accounts use the same database configuration as the experiment registry. The original 102 verified aggregate experiments stay in the `experiments` table and appear only in the research catalog.
 
 Existing Phase 6.1 users can sign in with their current credentials. The first sign-in after upgrading issues a browser cookie and opens the existing workspace. The database schema and saved records carry forward.
 

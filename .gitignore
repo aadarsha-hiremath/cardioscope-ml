@@ -30,3 +30,8 @@ desktop.ini
 *.log
 *.csv
 *.zip
+data/local/
+.streamlit/secrets.toml
+*.db
+*.sqlite*
+.playwright-mcp/

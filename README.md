@@ -16,6 +16,29 @@
 
 CV AP averages five development-fold scores. Holdout AP summarizes one shared set of 185 records. The extended tier includes diagnostic workup and addresses a later information setting. [Dataset audit](reports/dataset-audit.md) · [Feature availability](docs/evaluation.md)
 
+## Explore the research dashboard
+
+Phase 5 adds eight Streamlit pages: research overview, aggregate dataset exploration, model comparisons, hospital reliability, calibration/sensitivity, a fictional prediction sandbox, an SQLAlchemy experiment registry, and reproducibility documentation. The navy/slate workspace uses interactive Plotly charts. Displayed evidence is checked against frozen report fingerprints. The dashboard runs on CPU and does not retrain during navigation.
+
+From the repository root in PowerShell (create `.venv` with `py -3.12 -m venv .venv` if needed):
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dev,dashboard]"
+.\.venv\Scripts\python.exe -m streamlit run app/streamlit_app.py
+```
+
+Open [the local dashboard](http://127.0.0.1:8501). Aggregate research pages work without the raw CSV. The optional fictional sandbox remains disabled until you explicitly build a local model that reproduces the recorded Phase 3 holdout prediction digest:
+
+```powershell
+.\.venv\Scripts\python.exe -m cardioscope.dashboard.sandbox
+```
+
+This command requires the exact local CSV and locked environment. No serialized model or raw dataset is committed. The sandbox's experimental score is **not a clinically validated probability of disease**, and fictional inputs and outputs are not stored or logged. The registry imports six pooled and 96 hospital result summaries into local SQLite; PostgreSQL is optional. Import times are labeled as import times, not invented experiment history.
+
+![Running research overview](artifacts/phase5/overview-desktop.png)
+
+[Architecture, installation, database and artifact strategy](docs/dashboard.md) · [Actual browser screenshots and review](docs/dashboard-visual-review.md) · [Proposed Phase 6 checklist](docs/dashboard.md#proposed-phase-6-checklist--not-started)
+
 ## Why compare hospitals?
 
 Hungary has 106 positive outcomes among 293 records. Switzerland has 115 among 123, leaving only eight negatives. The vessel-count field (`ca`) is missing in 5 of 304 Cleveland records and 198 of 200 VA Long Beach records. A random split can reproduce these collection patterns on both sides of the split. Holding out a hospital asks whether a model transfers to a population with a different outcome frequency and different tests available.
@@ -87,14 +110,15 @@ The reference run and a fresh replay both produced scientific SHA-256 `c5ceaaf55
 ### Run the quality checks
 
 ```powershell
+.\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dev,dashboard]"
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m ruff check .
-.\.venv\Scripts\python.exe -m ruff format --check src tests scripts
+.\.venv\Scripts\python.exe -m ruff format --check .
 .\.venv\Scripts\python.exe -m mypy
 .\.venv\Scripts\python.exe -m pip check
 ```
 
-Tests generate invented records in temporary directories. The source CSV is needed only to reproduce the research reports.
+The source CSV is required to reproduce the research reports and rebuild the optional sandbox model. The exact refit test skips when the CSV is absent. The rest of the suite uses the tracked aggregate reports and synthetic fixtures.
 
 ## Architecture and field roles
 

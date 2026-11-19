@@ -1,0 +1,32 @@
+[server]
+address = "127.0.0.1"
+headless = true
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "viewer"
+
+[theme]
+base = "dark"
+primaryColor = "#38BDF8"
+backgroundColor = "#0B1120"
+secondaryBackgroundColor = "#18243A"
+textColor = "#F1F5F9"
+borderColor = "#334155"
+showWidgetBorder = true
+font = "sans serif"
+baseRadius = "medium"
+dataframeHeaderBackgroundColor = "#1E2D45"
+yellowColor = "#F59E0B"
+yellowTextColor = "#F59E0B"
+redColor = "#F87171"
+redTextColor = "#F87171"
+greenColor = "#2DD4BF"
+greenTextColor = "#2DD4BF"
+
+[theme.sidebar]
+backgroundColor = "#111C30"
+secondaryBackgroundColor = "#18243A"

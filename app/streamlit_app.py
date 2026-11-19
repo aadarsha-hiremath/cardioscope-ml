@@ -4,7 +4,12 @@ from pathlib import Path
 
 import streamlit as st
 
-from cardioscope.dashboard.workspace_ui import active_account, refresh_account
+from cardioscope.dashboard.workspace_ui import (
+    active_account,
+    refresh_account,
+    session_watch,
+    sidebar_logout,
+)
 
 st.set_page_config(page_title="CardioScope ML", page_icon=":material/monitoring:", layout="wide")
 refresh_account()
@@ -55,6 +60,8 @@ with st.sidebar:
     account = active_account()
     if account is not None:
         st.text(f"Signed in as {account.username}")
-    st.caption("PHASE 6.1 · LOCAL RESEARCH")
+        sidebar_logout()
+        session_watch()
+    st.caption("PHASE 6.2 · LOCAL RESEARCH")
     st.caption("Aggregate evidence · CPU inference")
 navigation.run()

@@ -38,6 +38,7 @@ from .workspace_schema import (
 )
 
 SESSION_SECONDS = 8 * 60 * 60
+REMEMBER_SECONDS = 30 * 24 * 60 * 60
 ATTEMPT_WINDOW = 15 * 60
 LOGIN_LIMIT = 30
 ACCOUNT_LIMIT = 6
@@ -46,6 +47,10 @@ USER_PATTERN = re.compile(r"[a-z][a-z0-9_]{2,31}", re.ASCII)
 AUTH_ERROR = "Sign-in failed. Check your username and password or try again later."
 PASSWORD_HASHER = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4, type=Type.ID)
 HASH_SLOTS = BoundedSemaphore(2)
+
+
+class InvalidSession(WorkspaceError):
+    """The session is missing, expired or revoked."""
 
 
 @dataclass(frozen=True)
@@ -172,7 +177,7 @@ class Workspace:
                     )
             return available
 
-    def register(self, username: str, password: str) -> None:
+    def register(self, username: str, password: str, *, remember: bool | None = None) -> str | None:
         name = username.strip().lower()
         if not USER_PATTERN.fullmatch(name):
             raise WorkspaceError(
@@ -185,11 +190,12 @@ class Workspace:
             raise WorkspaceError(error)
         with HASH_SLOTS:
             hashed = PASSWORD_HASHER.hash(password)
+        owner = uuid4().hex
         with self._transaction() as conn:
             try:
                 conn.execute(
                     users.insert().values(
-                        id=uuid4().hex,
+                        id=owner,
                         username=name,
                         password_hash=hashed,
                         created_at=int(time.time()),
@@ -197,8 +203,11 @@ class Workspace:
                 )
             except IntegrityError as exc:
                 raise WorkspaceError(error) from exc
+            if remember is not None:
+                return self._new_session(conn, owner, remember=remember)
+        return None
 
-    def login(self, username: str, password: str) -> str:
+    def login(self, username: str, password: str, *, remember: bool = False) -> str:
         name = username.strip().lower()
         if not USER_PATTERN.fullmatch(name) or not 1 <= len(password) <= 128:
             raise WorkspaceError(AUTH_ERROR)
@@ -219,21 +228,27 @@ class Workspace:
             raise WorkspaceError(AUTH_ERROR) from exc
         if row is None:
             raise WorkspaceError(AUTH_ERROR)
-        token = secrets.token_urlsafe(32)
-        now = int(time.time())
         with self._transaction() as conn:
-            conn.execute(sessions.delete().where(sessions.c.expires_at <= now))
             if new_hash is not None:
                 conn.execute(
                     users.update()
                     .where(users.c.id == row["id"], users.c.password_hash == row["password_hash"])
                     .values(password_hash=new_hash)
                 )
-            conn.execute(
-                sessions.insert().values(
-                    token_hash=_hash(token), owner_id=row["id"], expires_at=now + SESSION_SECONDS
-                )
+            return self._new_session(conn, row["id"], remember=remember)
+
+    @staticmethod
+    def _new_session(conn: Connection, owner: str, *, remember: bool) -> str:
+        token = secrets.token_urlsafe(32)
+        now = int(time.time())
+        conn.execute(sessions.delete().where(sessions.c.expires_at <= now))
+        conn.execute(
+            sessions.insert().values(
+                token_hash=_hash(token),
+                owner_id=owner,
+                expires_at=now + (REMEMBER_SECONDS if remember else SESSION_SECONDS),
             )
+        )
         return token
 
     def logout(self, token: str) -> None:
@@ -258,7 +273,7 @@ class Workspace:
             .one_or_none()
         )
         if row is None:
-            raise WorkspaceError("Sign in to access your personal workspace.")
+            raise InvalidSession("Sign in to access your personal workspace.")
         settings = Settings() if row["settings"] is None else Settings.parse(row["settings"])
         return Account(row["id"], row["username"], settings)
 

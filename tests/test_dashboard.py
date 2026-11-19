@@ -8,11 +8,13 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import URL, create_engine, inspect
 from streamlit.testing.v1 import AppTest
 
-from cardioscope.dashboard import charts, registry, sandbox
+from cardioscope.dashboard import charts, registry, sandbox, workspace_ui
 from cardioscope.dashboard.evidence import ROOT, EvidenceError, load_evidence, site_run, validate
+from cardioscope.dashboard.workspace import Workspace
+from cardioscope.dashboard.workspace_schema import open_workspace
 
 APP = str(ROOT / "app/streamlit_app.py")
 PAGES = [
@@ -30,6 +32,24 @@ PAGES = [
 @pytest.fixture
 def evidence():
     return load_evidence()
+
+
+@pytest.fixture(scope="module")
+def dashboard_session(tmp_path_factory):
+    directory = tmp_path_factory.mktemp("dashboard_identity")
+    engine = open_workspace(URL.create("sqlite", database=str(directory / "identity.db")))
+    store = Workspace(engine)
+    grant = store.register("research_viewer", "synthetic test password", remember=True)
+    yield store, grant
+    engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def dashboard_identity(dashboard_session, monkeypatch):
+    # AppTest has no cookie transport. HTTP and browser tests verify that boundary.
+    store, grant = dashboard_session
+    monkeypatch.setattr(workspace_ui, "store", lambda: store)
+    monkeypatch.setattr(workspace_ui, "token", lambda: grant)
 
 
 def test_verified_reports_and_integrity(evidence):
@@ -197,6 +217,11 @@ def app_page(page):
     return app
 
 
+def personal_box(app, key):
+    account = app.session_state["_workspace_account"]
+    return app.selectbox(key=f"personal_{account.id}_{key}")
+
+
 @pytest.mark.parametrize("page", PAGES)
 def test_all_navigation_pages_without_training(page, tmp_path, monkeypatch):
     monkeypatch.setenv("CARDIOSCOPE_DATABASE_URL", f"sqlite:///{tmp_path / 'ui.db'}")
@@ -210,8 +235,8 @@ def test_all_navigation_pages_without_training(page, tmp_path, monkeypatch):
 
 def test_laboratory_protocol_and_tier_controls(evidence):
     app = app_page("laboratory")
-    app.selectbox(key="lab_model").select("forest")
-    app.selectbox(key="lab_tier").select("extended").run()
+    personal_box(app, "lab_model").select("forest")
+    personal_box(app, "lab_tier").select("extended").run()
     row = next(
         r
         for r in evidence.pooled["evaluation"]
@@ -234,15 +259,15 @@ def test_laboratory_protocol_and_tier_controls(evidence):
 
 def test_hospital_controls_update_detail(evidence):
     app = app_page("reliability")
-    app.selectbox(key="reliability_model").select("xgboost")
-    app.selectbox(key="reliability_tier").select("extended")
-    app.selectbox(key="reliability_hospital").select("Switzerland").run()
+    personal_box(app, "reliability_model").select("xgboost")
+    personal_box(app, "reliability_tier").select("extended")
+    personal_box(app, "reliability_hospital").select("Switzerland").run()
     site = next(s for s in evidence.transfer["sites"] if s["hospital"] == "Switzerland")
     assert app.metric[0].value == str(site["test"])
     assert app.metric[2].value == str(site["negative"])
     assert app.warning
     assert not app.exception
-    app.selectbox(key="reliability_hospital").select("Hungary").run()
+    personal_box(app, "reliability_hospital").select("Hungary").run()
     assert app.metric[0].value != str(site["test"])
     assert not app.warning
 
@@ -259,6 +284,7 @@ def test_error_pages_and_disabled_sandbox(monkeypatch):
         side_effect=EvidenceError("model unavailable"),
     ):
         app = app_page("sandbox")
+        personal_box(app, "sandbox_preset").select("Fictional A").run()
         assert app.button[-1].disabled
     monkeypatch.setenv("CARDIOSCOPE_DATABASE_URL", "unsupported://secret")
     app = app_page("registry")
@@ -278,9 +304,9 @@ def test_registry_ui_import_and_filter(tmp_path, monkeypatch):
 
 def test_calibration_controls_and_paired_evidence(evidence):
     app = app_page("calibration")
-    app.selectbox(key="calibration_model").select("forest")
-    app.selectbox(key="calibration_tier").select("extended")
-    app.selectbox(key="calibration_hospital").select("Switzerland")
+    personal_box(app, "calibration_model").select("forest")
+    personal_box(app, "calibration_tier").select("extended")
+    personal_box(app, "calibration_hospital").select("Switzerland")
     app.selectbox[3].select("zero_as_missing").run()
     site = next(s for s in evidence.transfer["sites"] if s["hospital"] == "Switzerland")
     expected = site_run(site, "forest", "extended", "zero_as_missing")
@@ -332,9 +358,11 @@ def test_sandbox_state_and_no_persistence(tmp_path, monkeypatch, caplog):
         ),
     ):
         app = app_page("sandbox")
-        app.button[-1].click().run()
+        assert not app.number_input and not app.metric
+        personal_box(app, "sandbox_preset").select("Fictional A").run()
+        app.button[-2].click().run()
         assert app.metric[0].value == "0.300"
-        app.selectbox(key="sandbox_preset").select("Fictional B").run()
+        personal_box(app, "sandbox_preset").select("Fictional B").run()
         assert not app.metric
         assert app.number_input[0].value == 64.0
         app.number_input[0].set_value(70.0)
@@ -390,12 +418,12 @@ def test_overview_summary_uses_percentage(evidence):
 @pytest.mark.parametrize("tier", ["early", "extended"])
 def test_reliability_all_hospitals_match_artifacts(family, tier, evidence):
     app = app_page("reliability")
-    app.selectbox(key="reliability_model").select(family)
-    app.selectbox(key="reliability_tier").select(tier)
+    personal_box(app, "reliability_model").select(family)
+    personal_box(app, "reliability_tier").select(tier)
     sites = evidence.transfer["sites"]
     rows = [site_run(site, family, tier) for site in sites]
     for site, row in zip(sites, rows, strict=True):
-        app.selectbox(key="reliability_hospital").select(site["hospital"]).run()
+        personal_box(app, "reliability_hospital").select(site["hospital"]).run()
         assert not app.exception
         metrics = row["metrics"]
         table = app.dataframe[0].value.set_index("Metric")["Value"]
@@ -491,13 +519,14 @@ def test_existing_pipeline_replays_holdout_and_fictional_ui(evidence, tmp_path, 
         )
         monkeypatch.setenv("CARDIOSCOPE_DATABASE_URL", f"sqlite:///{tmp_path / 'never.db'}")
         app = app_page("sandbox")
+        personal_box(app, "sandbox_preset").select("Fictional A").run()
         assert [field.value for field in app.number_input] == [48, 120, 210]
-        app.button[-1].click().run()
+        app.button[-2].click().run()
         assert app.metric[0].value == "0.050"
-        app.selectbox(key="sandbox_preset").select("Fictional B").run()
+        personal_box(app, "sandbox_preset").select("Fictional B").run()
         assert not app.metric
         assert [field.value for field in app.number_input] == [64, 145, 280]
-        app.button[-1].click().run()
+        app.button[-2].click().run()
         assert app.metric[0].value != "0.050"
         app.number_input[0].set_value(70)
         app.button[0].click().run()
@@ -507,7 +536,7 @@ def test_existing_pipeline_replays_holdout_and_fictional_ui(evidence, tmp_path, 
             patch.object(sandbox, "load_verified", return_value=model),
             patch.object(sandbox, "validate_profile", side_effect=ValueError("Invalid age")),
         ):
-            app.button[-1].click().run()
+            app.button[-2].click().run()
         assert app.error[0].value == "Invalid age"
         assert not app.metric
         assert not app.exception

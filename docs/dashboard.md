@@ -10,12 +10,12 @@ From the repository root, use Python 3.12 and PowerShell:
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade "pip==26.3"
 .\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dev,dashboard]"
-.\.venv\Scripts\python.exe -m streamlit run app/streamlit_app.py
+.\.venv\Scripts\python.exe -m streamlit run app/serve.py
 ```
 
 Open `http://127.0.0.1:8501`. The server binds to loopback. Analytics collection is disabled. The eight research pages work from tracked aggregate reports; a raw CSV, GPU and PostgreSQL server are not required. With file watching disabled, restart the server after editing application code.
 
-Phase 6.1 also adds Account, Settings, My Reports, and Shared Fictional Reports. These pages use persistent account-owned storage alongside the separate research catalog. [Workspace guide](workspaces.md)
+The Welcome page gates dashboard access. Registration signs you in and opens Research Overview immediately. The authenticated sidebar includes Account, Settings, My Reports, Shared Fictional Reports, and Logout. Workspace storage uses the same database as the separate research catalog. [Session and workspace guide](workspaces.md)
 
 ## Pages
 
@@ -81,7 +81,7 @@ Optional PostgreSQL:
 .\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dashboard,postgres]"
 # Obtain this value securely from your environment; do not commit credentials.
 $env:CARDIOSCOPE_DATABASE_URL = $env:RESEARCH_DATABASE_URL
-.\.venv\Scripts\python.exe -m streamlit run app/streamlit_app.py
+.\.venv\Scripts\python.exe -m streamlit run app/serve.py
 ```
 
 Use a SQLAlchemy `postgresql+psycopg://` URL; `postgresql://` is normalized to that driver. SQLite URLs are also supported. PostgreSQL is optional: driver setup, URL validation and dialect-specific conflict handling are implemented; no live PostgreSQL instance was provisioned or exercised for this phase. Driver/server errors display credential-free messages. Never put credentials in the repository, screenshots or shared logs.

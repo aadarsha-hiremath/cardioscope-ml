@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 import streamlit as st
 
+from .auth import LOGOUT, WELCOME, CookiePolicy, browser_token
 from .evidence import FAMILIES
 from .examples import EXAMPLES, REPORT_DISCLAIMER
 from .registry import RegistryError, database_url
@@ -18,7 +19,6 @@ from .workspace_schema import WorkspaceError, open_workspace
 if TYPE_CHECKING:
     from sqlalchemy.engine import URL
 
-TOKEN = "_workspace_token"
 ACCOUNT = "_workspace_account"
 FLASH = "_workspace_flash"
 
@@ -38,29 +38,51 @@ def store() -> Workspace:
 
 
 def token() -> str:
-    value = st.session_state.get(TOKEN)
-    if not isinstance(value, str):
+    value = browser_token(st.context.cookies, CookiePolicy.configured())
+    if value is None:
         raise WorkspaceError("Sign in to access your personal workspace.")
     return value
 
 
-def _clear_account_state() -> None:
-    for key in list(st.session_state):
-        if isinstance(key, str) and key.startswith(("_workspace_", "personal_", "fiction_")):
-            del st.session_state[key]
-    for key in ("sandbox_preset", "sandbox_form_revision"):
-        st.session_state.pop(key, None)
-
-
 def refresh_account() -> None:
-    """Refresh the identity on every rerun. A widget value never establishes identity."""
-    if TOKEN not in st.session_state:
-        return
+    """Guard every rerun independently of browser navigation and widget state."""
     try:
-        st.session_state[ACCOUNT] = store().account(token())
+        grant = token()
+        st.session_state[ACCOUNT] = store().account(grant)
     except WorkspaceError:
-        _clear_account_state()
-        st.session_state[FLASH] = "Your workspace session ended. Sign in again to continue."
+        st.session_state.clear()
+        st.info("Sign in to open the research workspace.")
+        st.html(
+            f'<p><a href="{WELCOME}">Open sign-in</a></p>'
+            f'<script>window.location.replace("{WELCOME}");</script>',
+            unsafe_allow_javascript=True,
+        )
+        st.stop()
+
+
+@st.fragment(run_every=10.0)
+def session_watch() -> None:
+    try:
+        grant = token()
+        store().account(grant)
+    except WorkspaceError:
+        st.rerun(scope="app")
+
+
+def sidebar_logout() -> None:
+    st.html(
+        f"""<style>
+        .cardioscope-logout button {{
+          width: 100%; min-height: 38px; background: #18243a; color: #f1f5f9;
+          border: 1px solid #52637b; border-radius: 8px; font: inherit; cursor: pointer;
+        }}
+        .cardioscope-logout button:hover {{ border-color: #38bdf8; }}
+        .cardioscope-logout button:focus-visible {{ outline: 2px solid #38bdf8; }}
+        </style>
+        <form class="cardioscope-logout" action="{LOGOUT}" method="post">
+          <button type="submit">Logout</button>
+        </form>"""
+    )
 
 
 def active_account() -> Account | None:
@@ -88,62 +110,15 @@ def _sign_in_required() -> bool:
     if active_account() is not None:
         return False
     st.info("Sign in to open your personal workspace.")
-    st.page_link("views/account.py", label="Open account page")
     return True
 
 
 def account_page() -> None:
     st.title("Account")
-    st.caption("Local accounts keep settings and fictional workspaces separate.")
-    _notice()
     account = active_account()
-    if account:
+    if account is not None:
         st.text(f"Signed in as {account.username}")
-        st.caption("Refreshing or restarting the app may require you to sign in again.")
-        if st.button("Sign out", key="personal_signout"):
-            try:
-                store().logout(token())
-            except WorkspaceError:
-                _clear_account_state()
-                st.session_state[FLASH] = "Signed out here. Server revocation was unavailable."
-            else:
-                _clear_account_state()
-                st.session_state[FLASH] = "Signed out."
-            st.rerun()
-        return
-    login_tab, register_tab = st.tabs(["Sign in", "Register"])
-    with login_tab, st.form("personal_sign_in", clear_on_submit=True):
-        username = st.text_input("Username", key="personal_login_name", max_chars=32)
-        password = st.text_input(
-            "Password", type="password", key="personal_login_pw", max_chars=128
-        )
-        if st.form_submit_button("Sign in"):
-            try:
-                grant = store().login(username, password)
-                _clear_account_state_after_submit(grant)
-            except WorkspaceError as exc:
-                st.error(str(exc))
-    with register_tab, st.form("personal_register", clear_on_submit=True):
-        new_name = st.text_input("New username", max_chars=32)
-        new_password = st.text_input("New password", type="password", max_chars=128)
-        confirmation = st.text_input("Confirm password", type="password", max_chars=128)
-        st.caption("Use 12–128 characters and a password unique to this local workspace.")
-        if st.form_submit_button("Create account"):
-            if new_password != confirmation:
-                st.error("The passwords do not match.")
-            else:
-                try:
-                    store().register(new_name, new_password)
-                    st.success("Account created. Sign in to start your empty personal workspace.")
-                except WorkspaceError as exc:
-                    st.error(str(exc))
-
-
-def _clear_account_state_after_submit(grant: str) -> None:
-    _clear_account_state()
-    st.session_state[TOKEN] = grant
-    st.session_state[FLASH] = "Signed in."
-    st.rerun()
+        st.caption("Use Logout in the sidebar to end your session on this device.")
 
 
 def settings_page() -> None:

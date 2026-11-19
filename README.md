@@ -25,7 +25,7 @@ From the repository root in PowerShell (create `.venv` with `py -3.12 -m venv .v
 ```powershell
 .\.venv\Scripts\python.exe -m pip install --upgrade "pip==26.3"
 .\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dev,dashboard]"
-.\.venv\Scripts\python.exe -m streamlit run app/streamlit_app.py
+.\.venv\Scripts\python.exe -m streamlit run app/serve.py
 ```
 
 Open [the local dashboard](http://127.0.0.1:8501). Aggregate research pages work without the raw CSV. The optional fictional sandbox remains disabled until you explicitly build a local model that reproduces the recorded Phase 3 holdout prediction digest:
@@ -36,7 +36,7 @@ Open [the local dashboard](http://127.0.0.1:8501). Aggregate research pages work
 
 This command requires the exact local CSV and locked environment. No serialized model or raw dataset is committed. The sandbox's experimental score is **not a clinically validated probability of disease**. Ordinary inference stays transient. Signed-in users may explicitly save a private report for an unedited built-in example.
 
-Open **Account** to register and sign in. **Settings** saves chart and research defaults. **My Reports** holds your named fictional examples and private report history. **Shared Fictional Reports** shows only the result fields owners explicitly share. The original 102 research experiments stay in the separate, verified catalog. [Workspace setup, privacy, and backups](docs/workspaces.md)
+Sign in or create an account on the Welcome page to open Research Overview. **Keep me signed in on this device** is selected by default and lasts up to 30 days. Clear it on shared devices and use **Logout** in the sidebar to end the session. **Settings** saves chart and research defaults, **My Reports** holds your fictional profiles and private reports, and **Shared Fictional Reports** displays the result fields owners opted to share. The 102 research experiments remain in the verified catalog. [Workspace setup, privacy, and backups](docs/workspaces.md)
 
 ![Running research overview](artifacts/phase5/overview-desktop.png)
 

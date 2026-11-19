@@ -265,11 +265,11 @@ def test_concurrent_migration_and_writes_preserve_registry(tmp_path, monkeypatch
     engine.dispose()
 
 
-def test_streamlit_first_account_workspace_and_preferences(db):
+def test_streamlit_first_account_workspace_and_preferences(db, monkeypatch):
     store, _ = db
     token = sign_in(store, "editor")
+    monkeypatch.setattr("cardioscope.dashboard.workspace_ui.token", lambda: token)
     app = AppTest.from_file(str(ROOT / "app/streamlit_app.py"), default_timeout=30)
-    app.session_state["_workspace_token"] = token
     app.run()
     app.switch_page("views/my_reports.py").run()
     assert not app.exception

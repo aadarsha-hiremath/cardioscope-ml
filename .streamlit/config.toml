@@ -2,12 +2,14 @@
 address = "127.0.0.1"
 headless = true
 fileWatcherType = "none"
+disconnectedSessionTTL = 0
 
 [browser]
 gatherUsageStats = false
 
 [client]
 toolbarMode = "viewer"
+showErrorDetails = "none"
 
 [theme]
 base = "dark"

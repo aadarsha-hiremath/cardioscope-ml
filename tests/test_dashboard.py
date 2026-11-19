@@ -301,6 +301,22 @@ def test_dataset_missingness_selector(evidence):
     assert not app.exception
 
 
+def test_chart_accessible_names_and_document_preview():
+    app = app_page("laboratory")
+    comparison, confusion = app.get("plotly_chart")
+    assert "Pooled holdout average precision" in comparison.proto.alt
+    assert "true negatives" in confusion.proto.alt
+
+    app.switch_page("views/methodology.py").run()
+    assert not app.exception
+    preview = next(
+        item.value for item in app.markdown if "## Attribution and redistribution" in item.value
+    )
+    assert "Source comparison (`reports/data-quality-investigation.md`)" in preview
+    assert "[Source comparison](" not in preview
+    assert "[Dataset DOI](https://doi.org/10.24432/C52P4X)" in preview
+
+
 def test_sandbox_state_and_no_persistence(tmp_path, monkeypatch, caplog):
     class FakePipeline:
         def predict_proba(self, x):

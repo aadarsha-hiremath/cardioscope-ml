@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+from pathlib import PurePosixPath
 from typing import Any
 
 import pandas as pd
@@ -48,8 +50,18 @@ def cards(values: dict[str, Any]) -> None:
             st.metric(label, value)
 
 
-def plot(figure: Any) -> None:
-    st.plotly_chart(figure, width="stretch", config={"displaylogo": False, "responsive": True})
+def plot(figure: Any, alt: str) -> None:
+    st.plotly_chart(
+        figure, alt=alt, width="stretch", config={"displaylogo": False, "responsive": True}
+    )
+
+
+def confusion_plot(metrics: Record) -> None:
+    plot(
+        charts.confusion(metrics),
+        f"Confusion matrix. {metrics['tn']} true negatives, {metrics['fp']} false positives, "
+        f"{metrics['fn']} false negatives, {metrics['tp']} true positives.",
+    )
 
 
 def selectors(page: str) -> tuple[str, str]:
@@ -120,7 +132,8 @@ def overview(e: Evidence) -> None:
                 primary["family"],
                 primary["tier"],
                 None if selected == "All hospitals" else selected,
-            )
+            ),
+            "Primary model balanced accuracy and 95% bootstrap interval at each hospital.",
         )
         st.caption(
             "95% within-site group-bootstrap intervals. The dotted line marks "
@@ -216,7 +229,7 @@ def dataset(e: Evidence) -> None:
             hovertemplate="%{x}<br>Recorded 0: %{y:d}<extra></extra>",
         )
         fig.update_layout(barmode="stack", yaxis_title="Records")
-        plot(charts.style(fig))
+        plot(charts.style(fig), "Recorded positive and negative counts by hospital.")
     else:
         plot(
             charts.bars(
@@ -228,7 +241,8 @@ def dataset(e: Evidence) -> None:
                 "Records" if kind == "Record count" else "Positive prevalence (%)",
                 value_format=":d" if kind == "Record count" else ":.3f",
                 suffix="" if kind == "Record count" else "%",
-            )
+            ),
+            f"{kind} by hospital.",
         )
     st.subheader("Feature quality & availability")
     scope = st.selectbox("Missingness population", ["All hospitals"] + names)
@@ -348,7 +362,8 @@ def laboratory(e: Evidence) -> None:
             [r["selected"]["mean_ap"] if cv else r[metric_key]["average_precision"] for r in rows],
             "Average precision",
             True,
-        )
+        ),
+        f"{protocol} average precision for each model in the {tier} tier.",
     )
     if cv:
         st.warning(
@@ -376,7 +391,7 @@ def laboratory(e: Evidence) -> None:
         metrics_table(metric)
     with right:
         st.subheader("Recorded versus predicted class")
-        plot(charts.confusion(metric))
+        confusion_plot(metric)
         st.caption(
             "False negatives are recorded class 1 predicted as 0; false "
             "positives reverse this. Neither label is a diagnosis."
@@ -448,7 +463,11 @@ def reliability(e: Evidence) -> None:
     if row is None:
         st.info("This comparison is unavailable in the verified report.")
         return
-    plot(charts.hospital_chart(e.transfer["sites"], family, tier, site["hospital"]))
+    plot(
+        charts.hospital_chart(e.transfer["sites"], family, tier, site["hospital"]),
+        f"Balanced accuracy and 95% bootstrap intervals across hospitals for "
+        f"{FAMILIES[family]}, {tier} tier. {site['hospital']} is highlighted.",
+    )
     st.caption("Raw scores · Cholesterol as recorded · 95% within-site group-bootstrap intervals")
     cards(
         {
@@ -470,7 +489,7 @@ def reliability(e: Evidence) -> None:
         metrics_table(row["metrics"])
     with right:
         st.subheader("Where errors occur")
-        plot(charts.confusion(row["metrics"]))
+        confusion_plot(row["metrics"])
     st.subheader("Uncertainty, not just a point estimate")
     st.dataframe(
         pd.DataFrame(
@@ -531,7 +550,11 @@ def calibration(e: Evidence) -> None:
         for mode in ("raw", "sigmoid")
         if (r := site_run(site, family, tier, policy, mode)) is not None
     ]
-    plot(charts.calibration(rows))
+    plot(
+        charts.calibration(rows),
+        f"Reliability diagram for {site['hospital']}. Observed positive fraction versus "
+        "mean model score in each populated bin, with a diagonal for perfect agreement.",
+    )
     st.caption(
         "Five fixed equal-width score bins; hover for bin counts. The "
         "diagonal is perfect agreement on this sample, not proof of "
@@ -598,7 +621,9 @@ def calibration(e: Evidence) -> None:
                 [r["hospital"] for r in paired],
                 [r["changed_decisions"] for r in paired],
                 "Changed classifications",
-            )
+            ),
+            "Number of classifications changed by treating recorded cholesterol zeros "
+            "as missing, by hospital.",
         )
     st.warning(
         "The meaning of recorded cholesterol zeros remains unresolved. "
@@ -690,9 +715,10 @@ def sandbox(e: Evidence) -> None:
                     index=levels.index(str(examples[preset][key])),
                     key=f"{profile_key}_{key}",
                 )
-            submitted = st.form_submit_button(
-                "Validate & run fictional profile", disabled=model is None, type="primary"
-            )
+            with st.container(key="contrast_submit"):
+                submitted = st.form_submit_button(
+                    "Validate & run fictional profile", disabled=model is None, type="primary"
+                )
         st.caption(
             "Demo input bounds are interface constraints, not clinical "
             "reference ranges. This model preserves recorded cholesterol "
@@ -749,7 +775,8 @@ def registry(e: Evidence) -> None:
     engine = None
     try:
         engine = open_registry()
-        imported = st.button("Import verified research records", type="primary")
+        with st.container(key="contrast_import"):
+            imported = st.button("Import verified research records", type="primary")
         if imported:
             import_evidence(engine, e)
         rows, missing = verified_listing(engine, e)
@@ -812,7 +839,8 @@ def registry(e: Evidence) -> None:
                     metric != "log_loss",
                     value_format=":.4%" if metric in PERCENT_METRICS else ":.6~f",
                     tickformat=".0%" if metric in PERCENT_METRICS else None,
-                )
+                ),
+                f"{METRICS[metric]} for the selected aggregate experiments.",
             )
             st.caption(
                 "Chart labels are experiment ID prefixes; full identities appear "
@@ -828,6 +856,19 @@ def registry(e: Evidence) -> None:
     finally:
         if engine is not None:
             engine.dispose()
+
+
+def document_preview(content: str, path: str) -> str:
+    """Display checkout-relative Markdown destinations as repository references."""
+    pattern = r"\[([^\]\n]+)\]\(((?:\.\.?/)*[\w./-]+\.(?:md|json|png))(?:#[\w-]+)?\)"
+
+    def reference(match: re.Match[str]) -> str:
+        target = (ROOT / PurePosixPath(path).parent / match[2]).resolve()
+        if not target.is_relative_to(ROOT):
+            return match[1]
+        return f"{match[1]} (`{target.relative_to(ROOT).as_posix()}`)"
+
+    return re.sub(pattern, reference, content)
 
 
 def methodology(e: Evidence) -> None:
@@ -882,6 +923,7 @@ def methodology(e: Evidence) -> None:
         with st.expander(title):
             st.write(text)
     st.subheader("Source documents")
+    st.caption("Repository paths refer to files in the checkout. Downloads preserve the source.")
     docs = {
         "Data provenance & licensing": "docs/provenance.md",
         "Leakage-safe evaluation": "docs/evaluation.md",
@@ -894,7 +936,7 @@ def methodology(e: Evidence) -> None:
             document = ROOT / path
             if document.exists():
                 content = document.read_text(encoding="utf-8")
-                st.markdown(content)
+                st.markdown(document_preview(content, path))
                 st.download_button(
                     "Download source Markdown", content, file_name=document.name, key=path
                 )

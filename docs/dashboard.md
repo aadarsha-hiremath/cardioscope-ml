@@ -8,6 +8,7 @@ From the repository root, use Python 3.12 and PowerShell:
 
 ```powershell
 py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade "pip==26.3"
 .\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dev,dashboard]"
 .\.venv\Scripts\python.exe -m streamlit run app/streamlit_app.py
 ```

@@ -9,6 +9,8 @@ st.logo(str(Path(__file__).parent / "assets/wordmark.svg"), size="large")
 # Only documented, application-owned container classes are styled.
 st.html("""<style>
 [class*="st-key-metric_card_"] { background-color: #18243A; }
+.st-key-contrast_submit button:not(:disabled),
+.st-key-contrast_import button:not(:disabled) { color: #0B1120; }
 </style>""")
 
 groups = {

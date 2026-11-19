@@ -37,7 +37,7 @@ pyarrow==26.0.1
 pydeck==0.9.3
 Pygments==2.21.0
 pyparsing==3.3.3
-pytest==8.4.2
+pytest==9.0.3
 python-dateutil==4.0.0
 python-multipart==0.0.34
 pytz==2026.6

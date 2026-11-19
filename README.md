@@ -23,6 +23,7 @@ Phase 5 adds eight Streamlit pages: research overview, aggregate dataset explora
 From the repository root in PowerShell (create `.venv` with `py -3.12 -m venv .venv` if needed):
 
 ```powershell
+.\.venv\Scripts\python.exe -m pip install --upgrade "pip==26.3"
 .\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dev,dashboard]"
 .\.venv\Scripts\python.exe -m streamlit run app/streamlit_app.py
 ```
@@ -41,6 +42,8 @@ This command requires the exact local CSV and locked environment. No serialized 
 
 [Phase 5.1 UI corrections and acceptance](docs/dashboard-phase-5-1.md)
 
+[Phase 6 release audit and verification](docs/release-audit.md)
+
 ## Why compare hospitals?
 
 Hungary has 106 positive outcomes among 293 records. Switzerland has 115 among 123, leaving only eight negatives. The vessel-count field (`ca`) is missing in 5 of 304 Cleveland records and 198 of 200 VA Long Beach records. A random split can reproduce these collection patterns on both sides of the split. Holding out a hospital asks whether a model transfers to a population with a different outcome frequency and different tests available.
@@ -51,6 +54,7 @@ From the repository root, create a local Python 3.12 environment. If Python 3.12
 
 ```powershell
 py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade "pip==26.3"
 .\.venv\Scripts\python.exe -m pip install -c requirements-dev.lock -e ".[dev]"
 New-Item -ItemType Directory -Force data/raw | Out-Null
 ```
@@ -120,7 +124,7 @@ The reference run and a fresh replay both produced scientific SHA-256 `c5ceaaf55
 .\.venv\Scripts\python.exe -m pip check
 ```
 
-The source CSV is required to reproduce the research reports and rebuild the optional sandbox model. The exact refit test skips when the CSV is absent. The rest of the suite uses the tracked aggregate reports and synthetic fixtures.
+The source CSV is required to reproduce the research reports and rebuild the optional sandbox model. The refit and fitted-artifact replay tests skip when their local inputs are absent. The rest of the suite uses the tracked aggregate reports and synthetic fixtures.
 
 ## Architecture and field roles
 
@@ -141,6 +145,10 @@ The source CSV is required to reproduce the research reports and rebuild the opt
 
 These historical records describe selected hospital populations. The holdout represents their observed mixture. Sparse diagnostic tests, unresolved zero encodings and one disputed hospital label limit interpretation. The bootstrap intervals condition on the fitted pipelines and this evaluation sample. Probabilities estimate the recorded dataset label. Calibration and transport to an unseen site remain open research questions. [Source investigation](reports/data-quality-investigation.md)
 
-Phase 4 estimates transfer among these four historical sources. The paired comparisons are conditional on their fitted pipelines. For Phase 5, identify a genuinely untouched cohort with compatible outcome definitions and documented feature timing, then register the model, cutoff, calibration assessment and uncertainty analysis before opening its outcomes. [Retrospective study limitations](reports/phase4/reliability-findings.md)
+Phase 4 estimates transfer among these four historical sources. Earlier pooled development used all four hospitals. The paired comparisons are conditional on their fitted pipelines. Independent external validation would require an untouched cohort with compatible outcome definitions and documented feature timing, plus a registered model, cutoff, calibration assessment and uncertainty analysis before opening its outcomes. [Retrospective study limitations](reports/phase4/reliability-findings.md)
+
+## Code license and redistribution
+
+The owner has not selected a license for the project code. UCI lists CC BY 4.0 for its original dataset. Redistribution rights for the exact Kaggle combined CSV remain unconfirmed. Obtain the data from its source. The repository excludes the raw dataset, source archives, fitted models and local registry. [Dataset provenance and credits](docs/provenance.md)
 
 **Original data citation.** Janosi, A., Steinbrunn, W., Pfisterer, M., & Detrano, R. (1989). *Heart Disease* [Dataset]. UCI Machine Learning Repository. [DOI 10.24432/C52P4X](https://doi.org/10.24432/C52P4X)

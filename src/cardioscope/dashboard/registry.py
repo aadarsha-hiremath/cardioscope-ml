@@ -159,5 +159,19 @@ def listing(engine: Engine) -> list[dict[str, Any]]:
                     )
                 ).mappings()
             ]
-    except SQLAlchemyError as exc:
+    except (SQLAlchemyError, ValueError, TypeError) as exc:
         raise RegistryError("Could not read the aggregate experiment registry.") from exc
+
+
+def verified_listing(engine: Engine, evidence: Evidence) -> tuple[list[dict[str, Any]], int]:
+    """Check persisted rows against the verified source before rendering them."""
+    expected = {row["id"]: row for row in records(evidence)}
+    rows = listing(engine)
+    for row in rows:
+        payload = {key: value for key, value in row.items() if key != "imported_at"}
+        if payload != expected.get(row["id"]) or not isinstance(row["imported_at"], datetime):
+            raise RegistryError(
+                "Registry contains a record that does not match the verified reports. "
+                "Restore a trusted database or import into a fresh local SQLite database."
+            )
+    return rows, len(expected) - len(rows)

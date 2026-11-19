@@ -23,18 +23,36 @@ def style(fig: Any, height: int = 360) -> Any:
         legend=dict(orientation="h", y=-0.18),
         hoverlabel=dict(bgcolor="#1E2D45", font_color="#F1F5F9"),
     )
-    fig.update_xaxes(gridcolor="#25334A", zeroline=False)
-    fig.update_yaxes(gridcolor="#25334A", zeroline=False)
+    fig.update_xaxes(gridcolor="#25334A", zeroline=False, automargin=True)
+    fig.update_yaxes(gridcolor="#25334A", zeroline=False, automargin=True)
     return fig
 
 
-def bars(labels: list[str], values: list[float | None], ytitle: str, unit: bool = False) -> Any:
+def bars(
+    labels: list[str],
+    values: list[float | None],
+    ytitle: str,
+    unit: bool = False,
+    *,
+    value_format: str = ":.6~f",
+    suffix: str = "",
+    tickformat: str | None = None,
+) -> Any:
     fig = go.Figure(
         go.Bar(
-            x=labels, y=values, marker_color=CYAN, hovertemplate="%{x}<br>%{y:.3f}<extra></extra>"
+            x=labels,
+            y=values,
+            marker_color=CYAN,
+            hovertemplate=f"%{{x}}<br>{ytitle}: %{{y{value_format}}}{suffix}<extra></extra>",
         )
     )
-    fig.update_yaxes(title=ytitle, range=[0, 1] if unit else None)
+    fig.update_yaxes(
+        title=ytitle,
+        range=[0, 1] if unit else None,
+        rangemode="tozero",
+        ticksuffix=suffix,
+        tickformat=tickformat,
+    )
     return style(fig)
 
 
@@ -62,8 +80,17 @@ def hospital_chart(sites: list[Record], family: str, tier: str, selected: str | 
                 color="#94A3B8",
                 thickness=1.5,
             ),
-            customdata=[[s["test"], s["positive"], s["negative"]] for s in sites],
-            hovertemplate="<b>%{x}</b><br>Balanced accuracy %{y:.3f}<br>%{customdata[0]} records"
+            customdata=[
+                [
+                    s["test"],
+                    s["positive"],
+                    s["negative"],
+                    f"{bounds[0]:.4%}–{bounds[1]:.4%}" if bounds else "Unavailable",
+                ]
+                for s, bounds in zip(sites, intervals, strict=True)
+            ],
+            hovertemplate="<b>%{x}</b><br>Balanced accuracy: %{y:.4%}"
+            "<br>95% group-bootstrap interval: %{customdata[3]}<br>%{customdata[0]} records"
             "<br>%{customdata[1]} positive · %{customdata[2]} negative<extra></extra>",
         )
     )
@@ -98,6 +125,7 @@ def calibration(rows: list[Record]) -> Any:
             mode="lines",
             name="Agreement",
             line=dict(color="#64748B", dash="dot"),
+            hoverinfo="skip",
         )
     )
     for r in rows:
@@ -112,8 +140,8 @@ def calibration(rows: list[Record]) -> Any:
                 name=r["mode"].capitalize(),
                 line=dict(color=CYAN if r["mode"] == "raw" else TEAL),
                 hovertemplate=(
-                    "Mean score %{x:.3f}<br>Observed %{y:.3f}<br>%{customdata} "
-                    "records<extra></extra>"
+                    "Mean score %{x:.6~f}<br>Observed fraction %{y:.6~f}<br>%{customdata} "
+                    "records<extra>%{fullData.name}</extra>"
                 ),
             )
         )

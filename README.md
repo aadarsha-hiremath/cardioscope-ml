@@ -39,6 +39,8 @@ This command requires the exact local CSV and locked environment. No serialized 
 
 [Architecture, installation, database and artifact strategy](docs/dashboard.md) · [Actual browser screenshots and review](docs/dashboard-visual-review.md) · [Proposed Phase 6 checklist](docs/dashboard.md#proposed-phase-6-checklist--not-started)
 
+[Phase 5.1 UI corrections and acceptance](docs/dashboard-phase-5-1.md)
+
 ## Why compare hospitals?
 
 Hungary has 106 positive outcomes among 293 records. Switzerland has 115 among 123, leaving only eight negatives. The vessel-count field (`ca`) is missing in 5 of 304 Cleveland records and 198 of 200 VA Long Beach records. A random split can reproduce these collection patterns on both sides of the split. Holding out a hospital asks whether a model transfers to a population with a different outcome frequency and different tests available.

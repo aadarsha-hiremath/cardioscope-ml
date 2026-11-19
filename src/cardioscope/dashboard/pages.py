@@ -23,6 +23,7 @@ DISCLAIMER = (
     "Educational machine learning research. Not a clinically "
     "validated diagnostic or risk assessment system."
 )
+PERCENT_METRICS = {"balanced_accuracy", "sensitivity", "specificity", "precision", "f1"}
 
 
 def header(title: str, subtitle: str) -> None:
@@ -33,6 +34,10 @@ def header(title: str, subtitle: str) -> None:
 
 def fmt(value: Any) -> str:
     return "Unavailable" if value is None else f"{value:.3f}"
+
+
+def fmt_metric(key: str, value: float | None) -> str:
+    return f"{value:.1%}" if key in PERCENT_METRICS and value is not None else fmt(value)
 
 
 def cards(values: dict[str, Any]) -> None:
@@ -61,7 +66,10 @@ def selectors(page: str) -> tuple[str, str]:
 def metrics_table(metrics: Record) -> None:
     st.dataframe(
         pd.DataFrame(
-            [{"Metric": title, "Value": fmt(metrics.get(key))} for key, title in METRICS.items()]
+            [
+                {"Metric": title, "Value": fmt_metric(key, metrics.get(key))}
+                for key, title in METRICS.items()
+            ]
         ),
         hide_index=True,
         width="stretch",
@@ -94,12 +102,12 @@ def overview(e: Evidence) -> None:
             "Dataset records": e.audit["rows"],
             "Hospital datasets": len(sites),
             "Model families": len(FAMILIES),
-            "Equal-hospital mean BA": fmt(sum(scores) / len(scores)),
+            "Mean balanced accuracy": fmt_metric("balanced_accuracy", sum(scores) / len(scores)),
         }
     )
     st.caption(
         "Observed retrospective result · Primary early Logistic "
-        "Regression · Raw scores · Recorded cholesterol zeros preserved"
+        "Regression · Equal weight per hospital · Raw scores · Cholesterol zeros preserved"
     )
     with st.container(border=True):
         st.subheader("One model family. Four different populations.")
@@ -116,7 +124,7 @@ def overview(e: Evidence) -> None:
         )
         st.caption(
             "95% within-site group-bootstrap intervals. The dotted line marks "
-            "balanced accuracy of 0.50; it is not a clinical decision "
+            "balanced accuracy of 50%; it is not a clinical decision "
             "threshold."
         )
         if selected != "All hospitals":
@@ -130,8 +138,8 @@ def overview(e: Evidence) -> None:
     with left:
         st.subheader("What the evidence shows")
         st.write(
-            f"Primary balanced accuracy ranges from {min(scores):.3f} to "
-            f"{max(scores):.3f}. Transfer errors depend on the hospital, not "
+            f"Primary balanced accuracy ranges from {min(scores):.1%} to "
+            f"{max(scores):.1%}. Transfer errors depend on the hospital, not "
             f"just the classifier."
         )
         st.write(
@@ -198,12 +206,14 @@ def dataset(e: Evidence) -> None:
             y=[h["positive"] for h in hospitals],
             name="Recorded 1",
             marker_color=charts.CYAN,
+            hovertemplate="%{x}<br>Recorded 1: %{y:d}<extra></extra>",
         )
         fig.add_bar(
             x=names,
             y=[h["rows"] - h["positive"] for h in hospitals],
             name="Recorded 0",
             marker_color=charts.TEAL,
+            hovertemplate="%{x}<br>Recorded 0: %{y:d}<extra></extra>",
         )
         fig.update_layout(barmode="stack", yaxis_title="Records")
         plot(charts.style(fig))
@@ -216,6 +226,8 @@ def dataset(e: Evidence) -> None:
                     for h in hospitals
                 ],
                 "Records" if kind == "Record count" else "Positive prevalence (%)",
+                value_format=":d" if kind == "Record count" else ":.3f",
+                suffix="" if kind == "Record count" else "%",
             )
         )
     st.subheader("Feature quality & availability")
@@ -260,6 +272,12 @@ def dataset(e: Evidence) -> None:
             f"{a['fields']['oldpeak']['review']['negative ST depression']}. "
             f"Their clinical meaning remains unresolved."
         )
+        zero_sites = [
+            f"{h['hospital']}: {zeros}"
+            for h in hospitals
+            if (zeros := h["review"].get("chol", {}).get("zero", 0))
+        ]
+        st.caption("Cholesterol zeros by hospital · " + " · ".join(zero_sites))
         st.write(
             "Duplicate-like records are grouped across split boundaries; "
             "similarity alone does not prove patient identity. Highly sparse "
@@ -347,7 +365,7 @@ def laboratory(e: Evidence) -> None:
         )
     cards(
         {
-            "Balanced accuracy": fmt(metric["balanced_accuracy"]),
+            "Balanced accuracy": fmt_metric("balanced_accuracy", metric["balanced_accuracy"]),
             "ROC-AUC": fmt(metric["roc_auc"]),
             "Locked threshold": fmt(chosen["threshold"]),
         }
@@ -364,19 +382,58 @@ def laboratory(e: Evidence) -> None:
             "positives reverse this. Neither label is a diagnosis."
         )
     with st.expander("Selection rule & fitted configuration", expanded=True):
-        st.write(e.cv["selection"]["metadata"]["selection"])
-        st.write(e.cv["selection"]["metadata"]["threshold_rule"])
         st.write(
-            f"Recommended family for {tier}: "
+            "Within each family and tier, training-only cross-validation selected "
+            "the candidate with the highest mean fold average precision. Ties went "
+            "to the first candidate. "
+            f"Recommended family for the {tier} tier: "
             f"{FAMILIES[e.cv['selection']['cv_recommendations'][tier]]}."
         )
-        st.json(chosen["selected"]["parameters"] if cv else chosen["parameters"], expanded=False)
-        st.write(e.cv["selection"]["metadata"]["preprocessing"])
+        st.write(
+            f"**Selected threshold {chosen['threshold']:.3f}.** The threshold maximized "
+            "balanced accuracy on development out-of-fold scores. The pooled "
+            "holdout used that locked threshold."
+        )
+        params = chosen["selected"]["parameters"] if cv else chosen["parameters"]
+        labels = {
+            "C": "Inverse regularization strength",
+            "l1_ratio": "L1 regularization ratio",
+            "n_estimators": "Number of trees",
+            "n_jobs": "CPU jobs",
+            "max_iter": "Maximum iterations",
+            "tol": "Solver tolerance",
+            "reg_lambda": "L2 regularization",
+            "reg_alpha": "L1 regularization",
+            "eval_metric": "Evaluation metric",
+            "random_state": "Random seed",
+        }
+        st.table(
+            pd.DataFrame(
+                [
+                    {
+                        "Setting": labels.get(key, key.replace("_", " ").capitalize()),
+                        "Value": str(value) if value is not None else "None",
+                    }
+                    for key, value in params.items()
+                ]
+            ).set_index("Setting")
+        )
         st.caption(
             "Early features assume routine blood measurements. Extended "
             "features include diagnostic workup and answer a "
             "later-information question. Pooled results do not establish "
             "transfer reliability."
+        )
+    with st.expander("Advanced configuration"):
+        metadata = e.cv["selection"]["metadata"]
+        st.json(
+            {
+                "parameters": params,
+                "selection": metadata["selection"],
+                "threshold": chosen["threshold"],
+                "threshold_rule": metadata["threshold_rule"],
+                "preprocessing": metadata["preprocessing"],
+            }
         )
 
 
@@ -420,10 +477,10 @@ def reliability(e: Evidence) -> None:
             [
                 {
                     "Metric": METRICS[k],
-                    "Estimate": fmt(row["metrics"][k]),
+                    "Estimate": fmt_metric(k, row["metrics"][k]),
                     "95% interval": "Unavailable"
                     if v["bounds"] is None
-                    else f"{v['bounds'][0]:.3f}–{v['bounds'][1]:.3f}",
+                    else "–".join(fmt_metric(k, bound) for bound in v["bounds"]),
                     "Valid bootstrap draws": v["valid"],
                 }
                 for k, v in row["intervals"].items()
@@ -436,7 +493,7 @@ def reliability(e: Evidence) -> None:
         st.warning(
             f"Sparse class: {site['negative']} negatives and "
             f"{site['positive']} positives. Specificity may have substantial "
-            f"uncertainty; these intervals do not capture future-population "
+            f"uncertainty. These intervals do not capture future-population "
             f"uncertainty."
         )
     st.write(
@@ -593,15 +650,18 @@ def sandbox(e: Evidence) -> None:
         },
     }
     preset = st.selectbox("Synthetic example", list(examples), key="sandbox_preset")
-    if st.button("Reset fictional inputs"):
-        for key in list(st.session_state):
-            if isinstance(key, str) and key.startswith("fiction_"):
-                del st.session_state[key]
-        st.rerun()
+
+    def reset_profile() -> None:
+        # New widget IDs discard values still buffered in the browser form.
+        st.session_state["sandbox_form_revision"] = form_revision + 1
+
+    form_revision = st.session_state.get("sandbox_form_revision", 0)
+    st.button("Reset fictional inputs", on_click=reset_profile)
+    profile_key = f"fiction_{preset}_{form_revision}"
     left, right = st.columns(2)
     with left:
         st.subheader("Fictional input profile")
-        with st.form("fictional_profile"):
+        with st.form(f"{profile_key}_form"):
             values: Record = {}
             for key, label in {
                 "age": "Age (years)",
@@ -615,7 +675,8 @@ def sandbox(e: Evidence) -> None:
                     max_value=float(high),
                     value=float(examples[preset][key]),
                     step=1.0,
-                    key=f"fiction_{preset}_{key}",
+                    format="%g",
+                    key=f"{profile_key}_{key}",
                 )
             for key, label in {
                 "sex": "Recorded sex category",
@@ -627,7 +688,7 @@ def sandbox(e: Evidence) -> None:
                     label,
                     levels,
                     index=levels.index(str(examples[preset][key])),
-                    key=f"fiction_{preset}_{key}",
+                    key=f"{profile_key}_{key}",
                 )
             submitted = st.form_submit_button(
                 "Validate & run fictional profile", disabled=model is None, type="primary"
@@ -677,7 +738,7 @@ def sandbox(e: Evidence) -> None:
 
 
 def registry(e: Evidence) -> None:
-    from .registry import RegistryError, import_evidence, listing, open_registry
+    from .registry import RegistryError, import_evidence, open_registry, verified_listing
 
     header("Experiment Registry", "A local, reproducible index of aggregate research results.")
     st.caption(
@@ -688,21 +749,34 @@ def registry(e: Evidence) -> None:
     engine = None
     try:
         engine = open_registry()
-        if st.button("Import verified research records", type="primary"):
-            st.success(f"Registry contains {import_evidence(engine, e)} aggregate experiments.")
-        rows = listing(engine)
+        imported = st.button("Import verified research records", type="primary")
+        if imported:
+            import_evidence(engine, e)
+        rows, missing = verified_listing(engine, e)
+        total = len(rows)
+        if imported:
+            st.success(f"Registry contains {total} aggregate experiments.")
         if not rows:
             st.info("Registry is empty. Import the verified Phase 3 and Phase 4 results to begin.")
             return
+        if missing:
+            st.warning(f"{missing} verified records are missing. Reimport to restore them.")
         cols = st.columns(4)
+        filters: dict[str, str] = {}
         for col, field in zip(cols, ["model", "tier", "evaluation", "hospital"], strict=True):
             choice = col.selectbox(
                 field.capitalize(),
                 ["All"] + sorted({r[field] for r in rows}),
                 key=f"registry_{field}",
             )
-            if choice != "All":
-                rows = [r for r in rows if r[field] == choice]
+            if choice is not None:
+                filters[field] = choice
+        rows = [
+            row
+            for row in rows
+            if all(value == "All" or row[key] == value for key, value in filters.items())
+        ]
+        st.caption(f"Showing {len(rows)} of {total} verified experiments")
         if not rows:
             st.info("No experiments match these filters.")
             return
@@ -736,6 +810,8 @@ def registry(e: Evidence) -> None:
                     [r["metadata"]["metrics"].get(metric) for r in comparison],
                     METRICS[metric],
                     metric != "log_loss",
+                    value_format=":.4%" if metric in PERCENT_METRICS else ":.6~f",
+                    tickformat=".0%" if metric in PERCENT_METRICS else None,
                 )
             )
             st.caption(

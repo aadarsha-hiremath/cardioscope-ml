@@ -217,14 +217,17 @@ def test_laboratory_protocol_and_tier_controls(evidence):
         for r in evidence.pooled["evaluation"]
         if (r["family"], r["tier"]) == ("forest", "extended")
     )
-    assert app.metric[0].value == f"{row['holdout_metrics']['balanced_accuracy']:.3f}"
+    assert app.metric[0].value == f"{row['holdout_metrics']['balanced_accuracy']:.1%}"
+    assert app.metric[1].value == f"{row['holdout_metrics']['roc_auc']:.3f}"
+    assert app.metric[2].value == f"{row['threshold']:.3f}"
+    assert "Number of trees" in app.table[0].value.index
     app.selectbox[2].select("Training-only cross-validation").run()
     row = next(
         r
         for r in evidence.cv["selection"]["runs"]
         if (r["family"], r["tier"]) == ("forest", "extended")
     )
-    assert app.metric[0].value == f"{row['oof_metrics']['balanced_accuracy']:.3f}"
+    assert app.metric[0].value == f"{row['oof_metrics']['balanced_accuracy']:.1%}"
     assert app.warning
     assert not app.exception
 
@@ -324,3 +327,172 @@ def test_sandbox_state_and_no_persistence(tmp_path, monkeypatch, caplog):
         assert not app.exception
     assert not (tmp_path / "never-created.db").exists()
     assert not [r for r in caplog.records if r.name.startswith("cardioscope")]
+
+
+def test_dataset_aggregate_controls_and_counts(evidence):
+    audit = evidence.audit
+    sites = audit["hospitals"]
+    assert sum(s["rows"] for s in sites) == audit["rows"] == 920
+    assert sum(s["positive"] for s in sites) == audit["binary_target"]["1"] == 509
+    assert sum(s["rows"] - s["positive"] for s in sites) == audit["binary_target"]["0"] == 411
+    assert sum(s["review"].get("chol", {}).get("zero", 0) for s in sites) == 172
+
+    app = app_page("dataset")
+    names = [s["hospital"] for s in sites]
+    for mode, expected in {
+        "Record count": [[s["rows"] for s in sites]],
+        "Class counts": [
+            [s["positive"] for s in sites],
+            [s["rows"] - s["positive"] for s in sites],
+        ],
+        "Positive prevalence": [[s["prevalence_percent"] for s in sites]],
+    }.items():
+        app.selectbox[0].select(mode).run()
+        data = json.loads(app.get("plotly_chart")[0].proto.spec)["data"]
+        assert all(trace["x"] == names for trace in data)
+        assert [trace["y"] for trace in data] == expected
+    for site in sites:
+        app.selectbox[1].select(site["hospital"]).run()
+        table = app.dataframe[0].value.set_index("Feature")
+        for field, missing in site["missing"].items():
+            assert table.loc[field, "Missing records"] == missing["count"]
+            assert table.loc[field, "Missing (%)"] == missing["percent"]
+    assert not app.exception
+
+
+def test_overview_summary_uses_percentage(evidence):
+    app = app_page("overview")
+    scores = [
+        site_run(site, "logistic", "early")["metrics"]["balanced_accuracy"]
+        for site in evidence.transfer["sites"]
+    ]
+    metric = next(item for item in app.metric if item.label == "Mean balanced accuracy")
+    assert metric.value == f"{np.mean(scores):.1%}" == "70.1%"
+
+
+@pytest.mark.parametrize("family", ["logistic", "forest", "xgboost"])
+@pytest.mark.parametrize("tier", ["early", "extended"])
+def test_reliability_all_hospitals_match_artifacts(family, tier, evidence):
+    app = app_page("reliability")
+    app.selectbox(key="reliability_model").select(family)
+    app.selectbox(key="reliability_tier").select(tier)
+    sites = evidence.transfer["sites"]
+    rows = [site_run(site, family, tier) for site in sites]
+    for site, row in zip(sites, rows, strict=True):
+        app.selectbox(key="reliability_hospital").select(site["hospital"]).run()
+        assert not app.exception
+        metrics = row["metrics"]
+        table = app.dataframe[0].value.set_index("Metric")["Value"]
+        assert table["Balanced accuracy"] == f"{metrics['balanced_accuracy']:.1%}"
+        assert table["Sensitivity"] == f"{metrics['sensitivity']:.1%}"
+        assert table["Specificity"] == f"{metrics['specificity']:.1%}"
+        assert table["ROC-AUC"] == f"{metrics['roc_auc']:.3f}"
+        intervals = app.dataframe[1].value.set_index("Metric")
+        interval = row["intervals"]["balanced_accuracy"]
+        assert intervals.loc["Balanced accuracy", "95% interval"] == "–".join(
+            f"{bound:.1%}" for bound in interval["bounds"]
+        )
+        assert intervals.loc["Balanced accuracy", "Valid bootstrap draws"] == interval["valid"]
+        site_text = " ".join(m.value for m in app.markdown)
+        assert f"Held out: {site['hospital']}" in site_text
+        assert f"{site['train']} records" in site_text
+        assert f"Classification threshold: {row['threshold']:.3f}" in site_text
+        assert app.metric[0].value == str(site["test"])
+        assert bool(app.warning) == (site["hospital"] == "Switzerland")
+        if app.warning:
+            assert "8 negatives" in app.warning[0].value
+        bars, matrix = [
+            json.loads(chart.proto.spec)["data"][0] for chart in app.get("plotly_chart")
+        ]
+        assert bars["y"] == [r["metrics"]["balanced_accuracy"] for r in rows]
+        assert matrix["z"] == [[metrics["tn"], metrics["fp"]], [metrics["fn"], metrics["tp"]]]
+
+
+def test_registry_partial_and_corrupted_records(tmp_path, monkeypatch, evidence):
+    monkeypatch.setenv("CARDIOSCOPE_DATABASE_URL", f"sqlite:///{tmp_path / 'registry.db'}")
+    engine = registry.open_registry()
+    registry.import_evidence(engine, evidence)
+    original, missing = registry.verified_listing(engine, evidence)
+    assert missing == 0
+    row = original[0]
+    table = registry.experiments
+    with engine.begin() as connection:
+        connection.execute(table.delete().where(table.c.id == row["id"]))
+    app = app_page("registry")
+    assert "1 verified records are missing" in app.warning[0].value
+    assert len(app.dataframe[0].value) == 101
+    app.button[0].click().run()
+    assert "102" in app.success[0].value
+    app.selectbox(key="registry_model").select("logistic")
+    app.selectbox(key="registry_tier").select("extended")
+    app.selectbox(key="registry_evaluation").select("pooled").run()
+    assert len(app.dataframe[0].value) == 1
+    assert "Showing 1 of 102" in " ".join(c.value for c in app.caption)
+    assert json.loads(app.json[0].value)["artifact"] == "reports/phase3/pooled-both.json"
+    app.selectbox(key="registry_hospital").select("Cleveland").run()
+    assert "No experiments match" in app.info[0].value
+    with engine.begin() as connection:
+        connection.execute(
+            table.update().where(table.c.id == row["id"]).values(metadata={"metrics": {}})
+        )
+    app.run()
+    assert "does not match the verified reports" in app.error[0].value
+    assert not app.dataframe
+    assert not app.exception
+    engine.dispose()
+
+
+def test_existing_pipeline_replays_holdout_and_fictional_ui(evidence, tmp_path, monkeypatch):
+    from threadpoolctl import threadpool_limits
+
+    from cardioscope.data.loading import load_dataset
+    from cardioscope.preprocessing import Cholesterol, Tier, prepare_data
+    from cardioscope.splits import conventional_split
+    from cardioscope.training import probabilities, probability_digest
+
+    csv = ROOT / "data/raw/heart_disease_uci.csv"
+    if not csv.exists() or not all(
+        (sandbox.MODEL_DIR / name).exists() for name in ("sandbox.joblib", "sandbox.json")
+    ):
+        pytest.skip("Exact replay uses the original local CSV and a previously built sandbox model")
+    metadata = sandbox.expected_metadata(evidence)
+    dataset = load_dataset(csv)
+    assert dataset.sha256 == metadata["dataset_sha256"]
+    data = prepare_data(dataset.frame)
+    holdout = data.features(Tier.EARLY, Cholesterol.RECORDED).iloc[
+        list(conventional_split(data).test)
+    ]
+    with (
+        threadpool_limits(limits=1),
+        patch(
+            "sklearn.pipeline.Pipeline.fit", side_effect=AssertionError("inference must not fit")
+        ),
+    ):
+        model = sandbox.load_verified(evidence)
+        assert (
+            probability_digest(probabilities(model, holdout))
+            == metadata["holdout_probability_sha256"]
+        )
+        monkeypatch.setenv("CARDIOSCOPE_DATABASE_URL", f"sqlite:///{tmp_path / 'never.db'}")
+        app = app_page("sandbox")
+        assert [field.value for field in app.number_input] == [48, 120, 210]
+        app.button[-1].click().run()
+        assert app.metric[0].value == "0.050"
+        app.selectbox(key="sandbox_preset").select("Fictional B").run()
+        assert not app.metric
+        assert [field.value for field in app.number_input] == [64, 145, 280]
+        app.button[-1].click().run()
+        assert app.metric[0].value != "0.050"
+        app.number_input[0].set_value(70)
+        app.button[0].click().run()
+        assert not app.metric
+        assert app.number_input[0].value == 64
+        with (
+            patch.object(sandbox, "load_verified", return_value=model),
+            patch.object(sandbox, "validate_profile", side_effect=ValueError("Invalid age")),
+        ):
+            app.button[-1].click().run()
+        assert app.error[0].value == "Invalid age"
+        assert not app.metric
+        assert not app.exception
+        assert not (tmp_path / "never.db").exists()
